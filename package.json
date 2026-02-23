@@ -1,0 +1,16 @@
+{
+    "name": "sidd-ai",
+    "version": "1.0.0",
+    "description": "Sidd-AI — Ultimate Solaris 3D Evolution",
+    "scripts": {
+        "install-server": "cd server && npm install",
+        "server": "cd server && npm start",
+        "client": "npx -y http-server . -p 3001",
+        "dev": "npx -y concurrently \"npm run server\" \"npm run client\"",
+        "start": "npm run dev"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2",
+        "http-server": "^14.1.1"
+    }
+}
