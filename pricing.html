@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pricing — Sidd-AI</title>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="platform.css" />
+</head>
+
+<body>
+    <canvas id="space-canvas"></canvas>
+    <div id="platformNav"></div>
+
+    <div class="pricing-wrap">
+        <h1 class="s-title" style="margin-top:0">Simple Pricing</h1>
+        <p class="s-sub" style="margin-bottom:0">No subscriptions. No lock-in. Pay for what you use from a prepaid
+            balance.</p>
+
+        <!-- Pay-per-use card (top, as in screenshot) -->
+        <div class="pricing-card" style="margin:40px auto 0">
+            <div class="pricing-row"><span class="pr-item">AI messages</span><span
+                    class="pr-val"><strong>$0.003</strong><span class="pr-note">/msg (20/day free)</span></span></div>
+            <div class="pricing-row"><span class="pr-item">Bot hosting</span><span class="pr-val"><strong
+                        class="text-green">Free</strong><span class="pr-note">always</span></span></div>
+            <div class="pricing-row"><span class="pr-item">All channels</span><span class="pr-val"><strong
+                        class="text-green">Free</strong><span class="pr-note">Telegram, Discord, Slack,
+                        WebChat</span></span></div>
+            <div class="pricing-row no-border"><span class="pr-item">BYOK</span><span
+                    class="pr-val"><strong>Unlimited</strong><span class="pr-note">zero markup</span></span></div>
+            <div class="pricing-footer">
+                <span class="pr-tag">✦ Free to create &amp; test</span>
+                <span class="pr-tag">✦ Balance never expires</span>
+                <span class="pr-tag">✦ Bots pause at $0</span>
+            </div>
+        </div>
+
+        <!-- Tier cards -->
+        <div class="pricing-tiers" style="margin-top:56px">
+
+            <!-- Free -->
+            <div class="tier-card">
+                <div class="tier-name">Free</div>
+                <div class="tier-price">$0<span>/mo</span></div>
+                <p class="tier-desc">Perfect for trying out Sidd-AI. No credit card required.</p>
+                <ul class="tier-features">
+                    <li><span class="ck">✓</span>20 AI messages / day</li>
+                    <li><span class="ck">✓</span>1 active bot</li>
+                    <li><span class="ck">✓</span>WebChat channel</li>
+                    <li><span class="ck">✓</span>Community support</li>
+                    <li><span class="ck">✓</span>Marketplace access</li>
+                    <li style="color:var(--text-2);opacity:.4"><span>—</span>Priority support</li>
+                    <li style="color:var(--text-2);opacity:.4"><span>—</span>Custom domain</li>
+                </ul>
+                <a href="builder.html" class="cta-btn cta-ghost" style="width:100%;justify-content:center">Start Free
+                    →</a>
+            </div>
+
+            <!-- Pro -->
+            <div class="tier-card popular">
+                <div class="tier-pop-badge">Most Popular</div>
+                <div class="tier-name">Pro</div>
+                <div class="tier-price">$15<span>/mo</span></div>
+                <p class="tier-desc">For creators and small teams who need more power.</p>
+                <ul class="tier-features">
+                    <li><span class="ck">✓</span>Unlimited AI messages</li>
+                    <li><span class="ck">✓</span>10 active bots</li>
+                    <li><span class="ck">✓</span>All channels (Telegram, Discord, Slack…)</li>
+                    <li><span class="ck">✓</span>Priority support</li>
+                    <li><span class="ck">✓</span>Bot analytics dashboard</li>
+                    <li><span class="ck">✓</span>Custom bot avatar &amp; branding</li>
+                    <li style="color:var(--text-2);opacity:.4"><span>—</span>White-label</li>
+                </ul>
+                <a href="builder.html" class="cta-btn cta-primary" style="width:100%;justify-content:center">Start Pro
+                    →</a>
+            </div>
+
+            <!-- Enterprise -->
+            <div class="tier-card">
+                <div class="tier-name">Enterprise</div>
+                <div class="tier-price" style="font-size:28px">Custom</div>
+                <p class="tier-desc">For agencies and companies needing unlimited scale.</p>
+                <ul class="tier-features">
+                    <li><span class="ck">✓</span>Unlimited bots &amp; messages</li>
+                    <li><span class="ck">✓</span>All channels + custom integrations</li>
+                    <li><span class="ck">✓</span>White-label &amp; custom domain</li>
+                    <li><span class="ck">✓</span>Dedicated account manager</li>
+                    <li><span class="ck">✓</span>SLA &amp; uptime guarantee</li>
+                    <li><span class="ck">✓</span>Custom AI model fine-tuning</li>
+                    <li><span class="ck">✓</span>99.9% uptime SLA</li>
+                </ul>
+                <button class="cta-btn cta-ghost" style="width:100%;justify-content:center"
+                    onclick="showToast('Contact us at hello@sidd-ai.io','info','📧')">Contact Sales →</button>
+            </div>
+
+        </div>
+
+        <!-- FAQ -->
+        <div style="margin-top:80px;max-width:680px;margin-left:auto;margin-right:auto">
+            <h2
+                style="font-family:var(--font-title);font-size:28px;font-weight:800;text-align:center;margin-bottom:32px">
+                FAQ</h2>
+            <div id="faqList"></div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="platform.js"></script>
+    <script>
+        const FAQS = [
+            { q: 'What is BYOK?', a: 'BYOK = Bring Your Own Key. You can connect your own OpenAI or Anthropic API key and we will route your bot\'s messages through it with zero markup — you only pay the provider\'s rate.' },
+            { q: 'Does the free balance expire?', a: 'No. Any prepaid balance you add never expires. You can top up anytime and use it at your own pace.' },
+            { q: 'What happens when my balance hits $0?', a: 'Your bots automatically pause. They don\'t error — they just stop responding until you top up. You\'ll get an email notification before this happens.' },
+            { q: 'Can I sell my bot on the marketplace?', a: 'Yes! Build your bot, submit it to the marketplace, and earn $Snappy every time someone installs your template.' },
+            { q: 'Is Telegram / Discord integration free?', a: 'Absolutely. All channel integrations are free always. You only pay for the AI messages your bot generates.' },
+            { q: 'What AI models are supported?', a: 'GPT-4o (OpenAI), Claude 3.5 (Anthropic), Gemini 1.5 (Google), Llama 3 (Meta via Groq), and Mixtral (Mistral). Mix and match per bot.' },
+        ];
+
+        document.getElementById('faqList').innerHTML = FAQS.map((f, i) => `
+      <div style="border-bottom:1px solid var(--border);padding:20px 0">
+        <button onclick="toggleFaq(${i})" style="background:none;border:none;color:var(--text);font-size:15px;font-weight:600;cursor:pointer;width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;font-family:var(--font)">
+          ${f.q}<span id="faq-arrow-${i}" style="transition:transform .2s;font-size:20px;color:var(--text-2)">+</span>
+        </button>
+        <div id="faq-body-${i}" style="display:none;color:var(--text-2);font-size:14px;line-height:1.7;margin-top:12px">${f.a}</div>
+      </div>`).join('');
+
+        function toggleFaq(i) {
+            const body = document.getElementById('faq-body-' + i);
+            const arrow = document.getElementById('faq-arrow-' + i);
+            const open = body.style.display !== 'none' && body.style.display !== '';
+            body.style.display = open ? 'none' : 'block';
+            arrow.style.transform = open ? '' : 'rotate(45deg)';
+        }
+    </script>
+</body>
+
+</html>

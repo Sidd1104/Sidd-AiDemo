@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tokenomics — Sidd-AI $Snappy</title>
+    <meta name="description"
+        content="1,000,000,000 $Snappy — transparent allocation, on-chain verifiable. See the full breakdown, vesting schedule, and token utility." />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="platform.css" />
+    <style>
+        /* ── Tokenomics page–specific overrides ── */
+        .tok-hero {
+            text-align: center;
+            padding: calc(var(--nav-h) + 80px) 40px 60px;
+        }
+
+        .tok-hero h1 {
+            font-family: var(--font-title);
+            font-size: clamp(38px, 6vw, 72px);
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+
+        .tok-hero p {
+            font-size: 16px;
+            color: var(--text-2);
+            margin-bottom: 12px;
+        }
+
+        /* ── Allocation Bar ── */
+        .alloc-wrap {
+            max-width: 820px;
+            margin: 48px auto 0;
+        }
+
+        .alloc-bar {
+            display: flex;
+            height: 22px;
+            border-radius: 100px;
+            overflow: hidden;
+            margin-bottom: 36px;
+            box-shadow: 0 0 32px rgba(250, 204, 21, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .alloc-bar span {
+            display: block;
+            transition: flex .6s ease;
+        }
+
+        .alloc-legend {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px 16px;
+        }
+
+        .al-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .al-dot-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .al-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .al-pct {
+            font-family: var(--font-title);
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .al-name {
+            font-size: 13px;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .al-amt {
+            font-size: 12px;
+            color: var(--text-2);
+            margin-left: 18px;
+        }
+
+        /* ── Vesting Table ── */
+        .vesting-section {
+            max-width: 820px;
+            margin: 80px auto;
+            padding: 0 40px;
+        }
+
+        .vs-title {
+            font-family: var(--font-title);
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .vesting-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(1, 1, 3, 0.92);
+            /* High contrast dark box */
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+        }
+
+        .vesting-table th {
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 11px;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--text-2);
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .vesting-table td {
+            padding: 16px 20px;
+            font-size: 14px;
+            color: var(--text-2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .vesting-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .vesting-table td:first-child {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .unlock-gold {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .unlock-green {
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        /* ── How It Connects ── */
+        .connect-section {
+            max-width: 700px;
+            margin: 80px auto;
+            padding: 0 40px;
+            text-align: center;
+        }
+
+        .connect-section h2 {
+            font-family: var(--font-title);
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 800;
+            margin-bottom: 56px;
+        }
+
+        .connect-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .connect-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 24px;
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            position: relative;
+        }
+
+        .connect-step:last-child {
+            border-bottom: none;
+        }
+
+        .cs-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: var(--grad);
+            border: 1px solid rgba(250, 204, 21, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+            transition: background .3s, transform .3s, box-shadow .3s;
+            box-shadow: 0 4px 15px rgba(250, 204, 21, 0.2);
+        }
+
+        .cs-icon span {
+            color: #fff;
+        }
+
+        .connect-step:hover .cs-icon {
+            background: var(--grad);
+            transform: scale(1.08);
+            box-shadow: 0 8px 25px rgba(250, 204, 21, 0.4);
+        }
+
+
+
+
+        .cs-step-label {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .12em;
+            color: var(--purple-l);
+            margin-bottom: 4px;
+        }
+
+        .cs-title {
+            font-family: var(--font-title);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .cs-desc {
+            font-size: 14px;
+            color: var(--text-2);
+            line-height: 1.6;
+        }
+
+        /* ── FAQ ── */
+        .faq-section {
+            max-width: 720px;
+            margin: 80px auto;
+            padding: 0 40px;
+        }
+
+        .faq-section h2 {
+            font-family: var(--font-title);
+            font-size: clamp(30px, 4vw, 48px);
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .faq-item {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.02);
+            transition: border-color .2s;
+        }
+
+        .faq-item.open {
+            border-color: var(--border-h);
+        }
+
+        .faq-q {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            gap: 12px;
+            user-select: none;
+        }
+
+        .faq-q:hover {
+            color: var(--purple-l);
+        }
+
+        .faq-chevron {
+            font-size: 14px;
+            color: var(--text-2);
+            flex-shrink: 0;
+            transition: transform .25s;
+        }
+
+        .faq-item.open .faq-chevron {
+            transform: rotate(180deg);
+            color: var(--purple-l);
+        }
+
+        .faq-a {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .3s ease, padding .3s;
+            font-size: 14px;
+            color: var(--text-2);
+            line-height: 1.7;
+            padding: 0 22px;
+        }
+
+        .faq-item.open .faq-a {
+            max-height: 300px;
+            padding: 0 22px 18px;
+        }
+
+        /* ── Final CTA ── */
+        .tok-cta {
+            text-align: center;
+            padding: 80px 40px 120px;
+        }
+
+        .tok-cta h2 {
+            font-family: var(--font-title);
+            font-size: clamp(32px, 5vw, 60px);
+            font-weight: 800;
+            color: var(--purple-l);
+            margin-bottom: 16px;
+            line-height: 1.15;
+        }
+
+        .tok-cta p {
+            font-size: 16px;
+            color: var(--text-2);
+            margin-bottom: 36px;
+        }
+
+        .cta-snappy {
+            background: linear-gradient(135deg, #f59e0b, #ea580c);
+            color: #fff;
+            font-size: 17px;
+            padding: 18px 48px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font);
+            box-shadow: 0 8px 40px rgba(245, 158, 11, 0.45);
+            transition: transform .25s, box-shadow .25s;
+        }
+
+        .cta-snappy:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 50px rgba(245, 158, 11, 0.6);
+        }
+
+        /* ── Footer ── */
+        .tok-footer {
+            border-top: 1px solid var(--border);
+            padding: 28px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tok-footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .tok-footer-brand span {
+            font-size: 13px;
+            color: var(--text-2);
+            font-weight: 400;
+        }
+
+        .tok-footer-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tok-footer-links a {
+            font-size: 13px;
+            color: var(--text-2);
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .tok-footer-links a:hover {
+            color: var(--text);
+        }
+
+        .tok-footer-legal {
+            width: 100%;
+            font-size: 11px;
+            color: var(--text-2);
+            opacity: 0.5;
+            text-align: center;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            margin-top: 4px;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 700px) {
+            .alloc-legend {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .tok-footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .alloc-legend {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="space-canvas"></canvas>
+    <div id="platformNav"></div>
+
+    <div class="tokenomics-wrap" style="position:relative;z-index:1;">
+
+        <!-- ── HERO ── -->
+        <div class="tok-hero">
+            <h1>Tokenomics</h1>
+            <p>1,000,000,000 <strong>$Snappy</strong> — transparent allocation, on-chain verifiable.</p>
+        </div>
+
+        <!-- ── ALLOCATION BAR ── -->
+        <div class="alloc-wrap" style="padding:0 40px">
+            <div class="alloc-bar" id="allocBar">
+                <span style="flex:30;background:#10b981" title="Ecosystem & Rewards 30%"></span>
+                <span style="flex:15;background:#6366f1" title="Team & Founders 15%"></span>
+                <span style="flex:15;background:#a855f7" title="Development Fund 15%"></span>
+                <span style="flex:10;background:#14b8a6" title="Token Sale 10%"></span>
+                <span style="flex:10;background:#22d3ee" title="DEX Liquidity 10%"></span>
+                <span style="flex:10;background:#ec4899" title="Partnerships 10%"></span>
+                <span style="flex:9;background:#94a3b8" title="Treasury 9%"></span>
+                <span style="flex:1;background:#f59e0b" title="Community Claims 1%"></span>
+            </div>
+            <div class="alloc-legend" id="allocLegend"></div>
+        </div>
+
+        <!-- ── VESTING & LOCKUPS ── -->
+        <div class="vesting-section">
+            <div class="vs-title">⏱ Vesting &amp; Lockups</div>
+            <table class="vesting-table">
+                <thead>
+                    <tr>
+                        <th>Allocation</th>
+                        <th>Cliff</th>
+                        <th>Vesting</th>
+                        <th>Unlock</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Community Claims</td>
+                        <td>None</td>
+                        <td>None</td>
+                        <td class="unlock-gold">Unlocked immediately</td>
+                    </tr>
+                    <tr>
+                        <td>Ecosystem &amp; Rewards</td>
+                        <td>None</td>
+                        <td>36 months</td>
+                        <td class="unlock-green">Linear monthly</td>
+                    </tr>
+                    <tr>
+                        <td>Team &amp; Founders</td>
+                        <td>12 months</td>
+                        <td>24 months</td>
+                        <td>Linear post-cliff</td>
+                    </tr>
+                    <tr>
+                        <td>Development Fund</td>
+                        <td>6 months</td>
+                        <td>24 months</td>
+                        <td>Quarterly releases</td>
+                    </tr>
+                    <tr>
+                        <td>Token Sale</td>
+                        <td>None</td>
+                        <td>6 months</td>
+                        <td>Linear monthly</td>
+                    </tr>
+                    <tr>
+                        <td>DEX Liquidity</td>
+                        <td>None</td>
+                        <td>None</td>
+                        <td class="unlock-gold">Unlocked at launch</td>
+                    </tr>
+                    <tr>
+                        <td>Partnerships</td>
+                        <td>3 months</td>
+                        <td>18 months</td>
+                        <td>Milestone-based</td>
+                    </tr>
+                    <tr>
+                        <td>Treasury</td>
+                        <td>12 months</td>
+                        <td>36 months</td>
+                        <td>DAO-controlled</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ── HOW IT ALL CONNECTS ── -->
+        <div class="connect-section">
+            <h2>How It All Connects</h2>
+            <div class="connect-steps">
+                <div class="connect-step">
+                    <div class="cs-icon">🤖</div>
+                    <div class="cs-body">
+                        <div class="cs-step-label">STEP 01</div>
+                        <div class="cs-title">Create a Bot</div>
+                        <div class="cs-desc">Build an AI bot in minutes — name, model, channel, system prompt. No code.
+                        </div>
+                    </div>
+                </div>
+                <div class="connect-step">
+                    <div class="cs-icon">🎁</div>
+                    <div class="cs-body">
+                        <div class="cs-step-label">STEP 02</div>
+                        <div class="cs-title">Claim $Snappy</div>
+                        <div class="cs-desc">Complete 5 tasks and claim 100 $Snappy. Free. Yours to keep.</div>
+                    </div>
+                </div>
+                <div class="connect-step">
+                    <div class="cs-icon">⚡</div>
+                    <div class="cs-body">
+                        <div class="cs-step-label">STEP 03</div>
+                        <div class="cs-title">Launch &amp; Share</div>
+                        <div class="cs-desc">Deploy to Telegram, embed on your website, share the public link.</div>
+                    </div>
+                </div>
+                <div class="connect-step">
+                    <div class="cs-icon">💰</div>
+                    <div class="cs-body">
+                        <div class="cs-step-label">STEP 04</div>
+                        <div class="cs-title">Earn &amp; Scale</div>
+                        <div class="cs-desc">Earn $Snappy from every bot install, message processed, and template sold
+                            in
+                            the marketplace.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── FAQ ── -->
+        <div class="faq-section">
+            <h2>FAQ</h2>
+            <div class="faq-list" id="faqList"></div>
+        </div>
+
+        <!-- ── FINAL CTA ── -->
+        <div class="tok-cta">
+            <h2>The agent economy starts here.</h2>
+            <p>Create your first bot. Claim 100 $Snappy. Be one of the first 10,000.</p>
+            <a href="builder.html" class="cta-snappy">🎁 Create Bot &amp; Claim $Snappy</a>
+        </div>
+
+        <!-- ── FOOTER ── -->
+        <footer>
+            <div class="tok-footer">
+                <div class="tok-footer-brand">
+                    <div class="nav-logo-icon"
+                        style="width:28px;height:28px;border-radius:8px;background:var(--grad);display:flex;align-items:center;justify-content:center;">
+                        <svg width="14" height="14" viewBox="0 0 24 24">
+                            <polygon
+                                points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
+                                fill="#fff" />
+                        </svg>
+                    </div>
+                    Sidd-AI &nbsp;<span>Build. Launch. Earn.</span>
+                </div>
+                <div class="tok-footer-links">
+                    <a href="#">Terms</a>
+                    <a href="#">Privacy</a>
+                    <a href="index.html">Platform</a>
+                    <a href="tokenomics.html" style="color:var(--purple-l)">Tokenomics</a>
+                    <a href="#">Meteora SDK</a>
+                </div>
+                <div class="tok-footer-legal">
+                    $Snappy is a utility token. It is not an investment product. Powered by Meteora on Solana. Please
+                    review our terms before participating.
+                </div>
+            </div>
+        </footer>
+
+    </div><!-- /.tokenomics-wrap -->
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="platform.js"></script>
+    <script>
+        // ── Allocation data ──────────────────────────────────
+        const ALLOC = [
+            { pct: 30, label: 'Ecosystem & Rewards', amt: '300M', color: '#10b981' },
+            { pct: 15, label: 'Team & Founders', amt: '150M', color: '#6366f1' },
+            { pct: 15, label: 'Development Fund', amt: '150M', color: '#a855f7' },
+            { pct: 10, label: 'Token Sale', amt: '100M', color: '#14b8a6' },
+            { pct: 10, label: 'DEX Liquidity', amt: '100M', color: '#22d3ee' },
+            { pct: 10, label: 'Partnerships', amt: '100M', color: '#ec4899' },
+            { pct: 9, label: 'Treasury', amt: '90M', color: '#94a3b8' },
+            { pct: 1, label: 'Community Claims', amt: '10M', color: '#f59e0b' },
+        ];
+
+        document.getElementById('allocLegend').innerHTML = ALLOC.map(a => `
+            <div class="al-item">
+                <div class="al-pct">${a.pct}%</div>
+                <div class="al-dot-row">
+                    <div class="al-dot" style="background:${a.color}"></div>
+                    <span class="al-name">${a.label}</span>
+                </div>
+                <div class="al-amt">${a.amt}</div>
+            </div>`).join('');
+
+        // ── FAQ data ─────────────────────────────────────────
+        const FAQS = [
+            {
+                q: 'What is $Snappy?',
+                a: '$Snappy is the utility token of the Sidd-AI platform. It powers fee discounts, unlocks premium features, rewards bot creators, and governs the ecosystem. Total supply: 1,000,000,000.'
+            },
+            {
+                q: 'How do I get $Snappy for free?',
+                a: 'Complete 5 simple tasks (create a bot, connect your wallet, join Telegram, follow on X, tweet your bot link) and claim 100 $Snappy instantly. No purchase required. First 10,000 spots only.'
+            },
+            {
+                q: 'How does the Prorata sale work?',
+                a: 'Participants commit funds during the sale window. If the round is oversubscribed, everyone gets a proportional share (prorata). Unused funds are refunded on-chain automatically.'
+            },
+            {
+                q: 'What if Round 1 doesn\'t fill?',
+                a: 'If the round does not reach its minimum target, all committed funds are returned to participants in full via the smart contract. No funds are lost.'
+            },
+            {
+                q: 'What blockchain is $Snappy on?',
+                a: '$Snappy is a Solana SPL token. We chose Solana for near-zero fees, 400ms block times, and deep liquidity via Meteora DEX.'
+            },
+            {
+                q: 'Is there vesting?',
+                a: 'Community Claims are unlocked immediately. DEX Liquidity is unlocked at launch. Team & Founders have a 12-month cliff then 24-month linear vesting. See the full table above.'
+            },
+            {
+                q: 'What gives $Snappy value?',
+                a: 'Platform revenue buys back $Snappy from the market. Holding $Snappy unlocks Pro/Enterprise tiers. 10% of every marketplace template sale is distributed to $Snappy stakers.'
+            },
+        ];
+
+        document.getElementById('faqList').innerHTML = FAQS.map((f, i) => `
+            <div class="faq-item" id="faq${i}">
+                <div class="faq-q" onclick="toggleFaq(${i})">
+                    <span>${f.q}</span>
+                    <span class="faq-chevron">▾</span>
+                </div>
+                <div class="faq-a">${f.a}</div>
+            </div>`).join('');
+
+        function toggleFaq(i) {
+            const el = document.getElementById('faq' + i);
+            const isOpen = el.classList.contains('open');
+            document.querySelectorAll('.faq-item.open').forEach(x => x.classList.remove('open'));
+            if (!isOpen) el.classList.add('open');
+        }
+    </script>
+</body>
+
+</html>

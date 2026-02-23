@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Channels — Sidd-AI</title>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="platform.css" />
+</head>
+
+<body>
+    <canvas id="space-canvas"></canvas>
+    <div id="platformNav"></div>
+
+    <div class="channels-wrap">
+        <a href="dashboard.html" style="color:var(--text-2);font-size:13px;text-decoration:none">← Dashboard</a>
+        <div style="margin:16px 0 8px">
+            <h1 style="font-family:var(--font-title);font-size:28px;font-weight:800" id="channelsTitle">Connect Channels
+            </h1>
+            <p style="color:var(--text-2);font-size:14px;margin-top:4px">Deploy your bot to any platform in seconds.</p>
+        </div>
+
+        <!-- Bot info strip -->
+        <div id="botStrip"
+            style="display:none;align-items:center;gap:14px;padding:16px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;margin-bottom:28px">
+            <span id="botStripEmoji" style="font-size:28px"></span>
+            <div>
+                <div id="botStripName" style="font-weight:700;font-size:16px"></div>
+                <div id="botStripModel" style="color:var(--text-2);font-size:13px"></div>
+            </div>
+            <a href="#" id="botStripEdit"
+                style="margin-left:auto;color:var(--purple-l);font-size:13px;text-decoration:none">✏️ Edit Bot</a>
+        </div>
+
+        <div class="channels-grid" id="channelsGrid"></div>
+    </div>
+
+    <!-- Embed code modal -->
+    <div class="modal-overlay" id="embedModal" onclick="if(event.target===this)closeEmbed()">
+        <div class="modal-box" style="max-width:600px">
+            <div class="modal-header">
+                <h3>🌐 WebChat Embed Code</h3>
+                <button class="modal-close" onclick="closeEmbed()">✕</button>
+            </div>
+            <p class="modal-desc">Paste this snippet into your website's <code>&lt;body&gt;</code> tag. A chat bubble
+                will appear for your visitors.</p>
+            <div class="embed-code-box" id="embedCodeBox"></div>
+            <div style="display:flex;gap:10px">
+                <button class="cta-btn cta-primary" onclick="copyEmbedCode()" style="flex:1">📋 Copy Code</button>
+                <button class="cta-btn cta-ghost" onclick="closeEmbed()" style="flex:1">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="platform.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const botId = params.get('id');
+        let bot = botId ? BotStore.get(botId) : null;
+
+        function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+        // Show bot strip
+        if (bot) {
+            const strip = document.getElementById('botStrip'); strip.style.display = 'flex';
+            document.getElementById('botStripEmoji').textContent = bot.emoji || '🤖';
+            document.getElementById('botStripName').textContent = bot.name;
+            document.getElementById('botStripModel').textContent = bot.model;
+            document.getElementById('botStripEdit').href = 'builder.html?id=' + bot.id;
+        }
+
+        const CHANNELS_DEF = [
+            {
+                id: 'telegram', icon: '✈️', name: 'Telegram', color: '#229ED9',
+                desc: 'Connect with your Telegram Bot Token from @BotFather. Your bot will reply to users in any Telegram chat.',
+                fields: [{ id: 'tg_token', label: 'Bot Token', ph: '1234567890:AABB...your_bot_token' }],
+                action: 'connectTelegram'
+            },
+            {
+                id: 'discord', icon: '🎮', name: 'Discord', color: '#5865F2',
+                desc: 'Paste your Discord Server\'s Webhook URL. Your bot will read and reply to messages in that channel.',
+                fields: [{ id: 'dc_webhook', label: 'Webhook URL', ph: 'https://discord.com/api/webhooks/...' }],
+                action: 'connectDiscord'
+            },
+            {
+                id: 'webchat', icon: '🌐', name: 'WebChat Widget', color: '#6366f1',
+                desc: 'Embed a floating chat bubble on any website with one line of code. No signup required for visitors.',
+                fields: [], embedOnly: true
+            },
+            {
+                id: 'slack', icon: '⚡', name: 'Slack', color: '#E01E5A',
+                desc: 'Connect your Slack workspace via OAuth. Your bot will respond in any channel it\'s added to.',
+                fields: [{ id: 'sl_token', label: 'Bot OAuth Token', ph: 'xoxb-...your-slack-token' }],
+                action: 'connectSlack'
+            },
+            {
+                id: 'whatsapp', icon: '💬', name: 'WhatsApp', color: '#25D366',
+                desc: 'WhatsApp Business API integration. Requires Meta Developer account.', soon: true
+            },
+            {
+                id: 'signal', icon: '🔒', name: 'Signal', color: '#3A76F0',
+                desc: 'End-to-end encrypted messaging. Signal bot integration coming soon.', soon: true
+            },
+        ];
+
+        function isConnected(ch) { return !!(bot?.channels?.[ch]?.connected); }
+
+        function renderChannels() {
+            document.getElementById('channelsGrid').innerHTML = CHANNELS_DEF.map(ch => {
+                const conn = isConnected(ch.id);
+                const statusHtml = ch.soon
+                    ? '<span class="channel-status ch-soon">Coming Soon</span>'
+                    : conn ? '<span class="channel-status ch-connected">✓ Connected</span>'
+                        : '<span class="channel-status">Not Connected</span>';
+
+                const fieldsHtml = ch.soon ? '' : (ch.fields || []).map(f =>
+                    `<div style="margin-bottom:10px">
+            <label style="font-size:12px;color:var(--text-2);display:block;margin-bottom:4px">${f.label}</label>
+            <input class="form-input" id="${f.id}" placeholder="${f.ph}" value="${esc(bot?.channels?.[ch.id]?.[f.id] || '')}" style="font-size:13px;padding:9px 12px"/>
+          </div>`
+                ).join('');
+
+                const actionBtns = ch.soon ? '' : ch.embedOnly
+                    ? `<button class="cta-btn cta-primary" onclick="showEmbed()" style="width:100%;margin-top:10px">🌐 Get Embed Code</button>`
+                    : `<div style="display:flex;gap:8px;margin-top:10px">
+              <button class="cta-btn cta-primary" onclick="${ch.action}('${ch.id}')" style="flex:1">${conn ? '🔄 Reconnect' : '🔌 Connect'}</button>
+              ${conn ? `<button class="cta-btn cta-danger" onclick="disconnectCh('${ch.id}')" style="flex:1;padding:10px">Disconnect</button>` : ''}
+            </div>`;
+
+                return `<div class="channel-card" style="${conn ? 'border-color:' + ch.color + ';box-shadow:0 0 20px ' + ch.color + '22' : ''}">
+          <div class="channel-head">
+            <span class="channel-icon">${ch.icon}</span>
+            <span class="channel-name">${ch.name}</span>
+            ${statusHtml}
+          </div>
+          <p class="channel-desc">${ch.desc}</p>
+          ${fieldsHtml}
+          ${actionBtns}
+        </div>`;
+            }).join('');
+        }
+
+        function saveChannel(chId, data) {
+            if (!bot) { showToast('No bot selected', 'error', '⚠️'); return false; }
+            bot.channels = bot.channels || {};
+            bot.channels[chId] = { ...data, connected: true };
+            BotStore.save(bot);
+            renderChannels();
+            return true;
+        }
+
+        function connectTelegram(chId) {
+            const val = document.getElementById('tg_token')?.value.trim();
+            if (!val) { showToast('Enter your Bot Token first', 'error', '⚠️'); return; }
+            if (!val.match(/^\d+:.{20,}$/)) { showToast('Invalid bot token format', 'error', '⚠️'); return; }
+            saveChannel(chId, { tg_token: val });
+            showToast('Telegram connected! ✈️', 'success', '✈️');
+        }
+        function connectDiscord(chId) {
+            const val = document.getElementById('dc_webhook')?.value.trim();
+            if (!val || !val.startsWith('https://discord.com/api/webhooks/')) { showToast('Invalid Discord webhook URL', 'error', '⚠️'); return; }
+            saveChannel(chId, { dc_webhook: val });
+            showToast('Discord connected! 🎮', 'success', '🎮');
+        }
+        function connectSlack(chId) {
+            const val = document.getElementById('sl_token')?.value.trim();
+            if (!val) { showToast('Enter your Slack OAuth token', 'error', '⚠️'); return; }
+            saveChannel(chId, { sl_token: val });
+            showToast('Slack connected! ⚡', 'success', '⚡');
+        }
+        function disconnectCh(chId) {
+            if (!bot) return;
+            bot.channels = bot.channels || {}; bot.channels[chId] = { connected: false };
+            BotStore.save(bot); renderChannels();
+            showToast('Channel disconnected', 'info', '🔌');
+        }
+
+        function showEmbed() {
+            const id = bot?.id || 'demo';
+            const name = bot?.name || 'My Bot';
+            const code = `<script src="https://sidd-ai.io/embed.js"
+  data-bot-id="${id}"
+  data-bot-name="${name}"
+  data-primary-color="#7c3aed"
+  data-position="bottom-right">
+<\/script>`;
+            document.getElementById('embedCodeBox').textContent = code;
+            document.getElementById('embedModal').classList.add('open');
+        }
+        function closeEmbed() { document.getElementById('embedModal').classList.remove('open'); }
+        function copyEmbedCode() { copyToClipboard(document.getElementById('embedCodeBox').textContent, 'Embed code copied!'); }
+
+        renderChannels();
+    </script>
+</body>
+
+</html>

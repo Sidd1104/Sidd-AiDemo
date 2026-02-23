@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — Sidd-AI</title>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="platform.css" />
+    <style>
+        /* ── User profile chip ── */
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 6px 14px 6px 8px;
+        }
+
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 0 10px rgba(250, 204, 21, 0.2);
+        }
+
+        .user-chip-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .user-chip-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .user-chip-email {
+            font-size: 11px;
+            color: var(--text-2);
+            line-height: 1.2;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        .dash-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .dash-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* ── Auth guard overlay ── */
+        #authGuard {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: #010103;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-guard-spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(124, 58, 237, 0.25);
+            border-top-color: #a78bfa;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Auth check overlay — hidden once verified -->
+    <div id="authGuard">
+        <div class="auth-guard-spinner"></div>
+    </div>
+
+    <canvas id="space-canvas"></canvas>
+    <div id="platformNav"></div>
+
+    <div class="dashboard-wrap">
+        <!-- Header -->
+        <div class="dash-header">
+            <div>
+                <h1 class="dash-title">Your Bots</h1>
+                <p style="color:var(--text-2);font-size:14px;margin-top:4px">Manage, deploy and monitor all your AI bots
+                </p>
+            </div>
+            <div class="dash-header-right">
+                <!-- User profile chip injected here -->
+                <div class="user-chip" id="userChip" style="display:none">
+                    <div class="user-avatar" id="userAvatar">?</div>
+                    <div class="user-chip-info">
+                        <span class="user-chip-name" id="userName">—</span>
+                        <span class="user-chip-email" id="userEmail">—</span>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutBtn" style="display:none" onclick="handleLogout()">↩
+                    Logout</button>
+                <a href="builder.html" class="cta-btn cta-primary">+ Create New Bot</a>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-strip" id="statsStrip">
+            <div class="glass-card stat-card">
+                <div class="stat-card-n" id="statBots">0</div>
+                <div class="stat-card-l">Total Bots</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-card-n" id="statChannels">0</div>
+                <div class="stat-card-l">Active Channels</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-card-n" id="statMsgs">0</div>
+                <div class="stat-card-l">Messages Sent</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-card-n text-gold" id="statFredo">0</div>
+                <div class="stat-card-l">$Snappy Earned</div>
+            </div>
+        </div>
+
+        <!-- Filter/search bar -->
+        <div style="display:flex;gap:12px;margin-bottom:24px;align-items:center">
+            <input type="text" class="form-input" id="botSearch" placeholder="🔍 Search bots…" oninput="renderBots()"
+                style="max-width:280px" />
+            <select class="form-select" id="botFilter" onchange="renderBots()" style="max-width:180px">
+                <option value="all">All bots</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+
+        <!-- Bots grid -->
+        <div class="bots-grid" id="botsGrid"></div>
+    </div>
+
+    <!-- Delete confirm modal -->
+    <div class="modal-overlay" id="deleteModal" onclick="if(event.target===this)closeDelete()">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Delete Bot</h3>
+                <button class="modal-close" onclick="closeDelete()">✕</button>
+            </div>
+            <p class="modal-desc">Are you sure you want to delete <strong id="deleteNameLabel"></strong>? This cannot be
+                undone.</p>
+            <div style="display:flex;gap:10px;margin-top:20px">
+                <button class="cta-btn cta-danger" onclick="confirmDelete()" style="flex:1">Delete</button>
+                <button class="cta-btn cta-ghost" onclick="closeDelete()" style="flex:1">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="platform.js"></script>
+    <script>
+        const API = window.location.protocol === 'file:' ? 'http://localhost:3001/api' : '/api';
+        let currentUser = null;
+        let deletingId = null;
+
+        // ── Auth Guard ──────────────────────────────────────────────
+        async function checkAuth() {
+            const token = localStorage.getItem('sidd-auth-token');
+            if (!token) return redirect();
+
+            try {
+                const res = await fetch(`${API}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) return redirect();
+                currentUser = await res.json();
+                showUser(currentUser);
+                document.getElementById('authGuard').style.display = 'none';
+                renderBots();
+                updateStats();
+            } catch (e) {
+                redirect();
+            }
+        }
+
+        function redirect() {
+            window.location.href = 'login.html';
+        }
+
+        function showUser(user) {
+            const initials = user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+            document.getElementById('userAvatar').textContent = initials;
+            document.getElementById('userName').textContent = user.name;
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('userChip').style.display = 'flex';
+            document.getElementById('logoutBtn').style.display = '';
+        }
+
+        async function handleLogout() {
+            const token = localStorage.getItem('sidd-auth-token');
+            try {
+                await fetch(`${API}/auth/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (e) { }
+            localStorage.removeItem('sidd-auth-token');
+            localStorage.removeItem('sidd-auth-user');
+            showToast('Logged out successfully', 'info', '👋');
+            setTimeout(() => window.location.href = 'login.html', 600);
+        }
+
+        // ── Bot rendering ───────────────────────────────────────────
+        function renderBots() {
+            const query = (document.getElementById('botSearch')?.value || '').toLowerCase();
+            const filter = document.getElementById('botFilter')?.value || 'all';
+            let bots = BotStore.getAll();
+            if (query) bots = bots.filter(b => b.name.toLowerCase().includes(query) || (b.desc || '').toLowerCase().includes(query));
+            if (filter === 'active') bots = bots.filter(b => b.active);
+            if (filter === 'inactive') bots = bots.filter(b => !b.active);
+
+            const grid = document.getElementById('botsGrid');
+            if (!bots.length) {
+                grid.innerHTML = `<div class="empty-state">
+          <div class="empty-icon">🤖</div>
+          <h3>No bots yet</h3>
+          <p style="margin-bottom:24px">Create your first AI bot and deploy it anywhere.</p>
+          <a href="builder.html" class="cta-btn cta-primary">Create Your First Bot →</a>
+        </div>`;
+                return;
+            }
+
+            grid.innerHTML = bots.map(b => {
+                const channels = Object.keys(b.channels || {}).filter(c => (b.channels || {})[c]?.connected);
+                const chanBadges = channels.map(c => `<span class="ch-badge">${(CHANNEL_META[c] || {}).icon || '🔌'} ${(CHANNEL_META[c] || {}).label || c}</span>`).join('');
+                return `<div class="glass-card bot-card">
+          <div class="bot-card-head">
+            <div class="bot-emoji">${b.emoji || '🤖'}</div>
+            <div>
+              <div class="bot-name">${escHtml(b.name)}</div>
+              <div class="bot-model">${b.model || 'Llama 3'}</div>
+            </div>
+            <span class="bot-status ${b.active ? 'status-active' : 'status-inactive'}">${b.active ? 'Active' : 'Inactive'}</span>
+          </div>
+          <p class="bot-desc">${escHtml(b.desc || 'No description')}</p>
+          <div class="bot-channels">${chanBadges || '<span class="ch-badge">No channels</span>'}</div>
+          <div class="bot-meta">Created ${relativeTime(b.createdAt)} · ${b.messageCount || 0} messages</div>
+          <div class="bot-actions">
+            <a href="builder.html?id=${b.id}" class="bot-action-btn primary">✏️ Edit</a>
+            <a href="channels.html?id=${b.id}" class="bot-action-btn">🔌 Channels</a>
+            <button class="bot-action-btn" onclick="toggleActive('${b.id}')">${b.active ? '⏸ Pause' : '▶ Start'}</button>
+            <button class="bot-action-btn danger" onclick="openDelete('${b.id}','${escHtml(b.name)}')">🗑</button>
+          </div>
+        </div>`;
+            }).join('');
+        }
+
+        function escHtml(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+        function toggleActive(id) {
+            const b = BotStore.get(id); if (!b) return;
+            b.active = !b.active;
+            BotStore.save(b);
+            renderBots();
+            updateStats();
+            showToast(b.active ? 'Bot started ▶' : 'Bot paused ⏸', 'info', b.active ? '🟢' : '⏸');
+        }
+
+        function openDelete(id, name) {
+            deletingId = id;
+            document.getElementById('deleteNameLabel').textContent = name;
+            document.getElementById('deleteModal').classList.add('open');
+        }
+        function closeDelete() { document.getElementById('deleteModal').classList.remove('open'); deletingId = null; }
+        function confirmDelete() {
+            if (!deletingId) return;
+            BotStore.delete(deletingId);
+            closeDelete();
+            renderBots();
+            updateStats();
+            showToast('Bot deleted', 'info', '🗑');
+        }
+
+        function updateStats() {
+            const s = BotStore.stats();
+            document.getElementById('statBots').textContent = s.bots;
+            document.getElementById('statChannels').textContent = s.channels;
+            document.getElementById('statMsgs').textContent = s.messages;
+            document.getElementById('statFredo').textContent = (s.messages * 2) + ' $';
+        }
+
+        // ── Init ─────────────────────────────────────────────────────
+        checkAuth();
+    </script>
+</body>
+
+</html>

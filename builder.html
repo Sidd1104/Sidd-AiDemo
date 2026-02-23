@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bot Builder — Sidd-AI</title>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="platform.css" />
+    <style>
+        .preview-chat {
+            background: rgba(1, 1, 3, 0.92);
+            /* Solaris Black-Ice */
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 24px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .preview-msg {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .preview-msg.ai {
+            background: rgba(255, 255, 255, 0.08);
+            /* Slightly more visible */
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            align-self: flex-start;
+        }
+
+        .preview-msg.user {
+            background: var(--grad);
+            color: #fff;
+            align-self: flex-end;
+            box-shadow: 0 4px 12px rgba(250, 204, 21, 0.2);
+            font-weight: 600;
+        }
+
+        .preview-input {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .preview-input input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 14px;
+            font-family: var(--font);
+            outline: none;
+        }
+
+        .knowledge-items {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .knowledge-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .knowledge-item .ki-del {
+            margin-left: auto;
+            cursor: pointer;
+            color: var(--red);
+            background: none;
+            border: none;
+            font-size: 18px;
+        }
+
+        .slider-wrap {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .slider-wrap input[type=range] {
+            flex: 1;
+        }
+
+        .slider-val {
+            min-width: 32px;
+            text-align: right;
+            font-weight: 700;
+            color: var(--purple-l);
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="space-canvas"></canvas>
+    <div id="platformNav"></div>
+
+    <div class="builder-wrap">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
+            <a href="dashboard.html" style="color:var(--text-2);font-size:13px;text-decoration:none">← Dashboard</a>
+        </div>
+        <h1 class="builder-title" id="pageTitle">Create Your Bot</h1>
+        <p class="builder-sub">Set up your AI bot in 4 steps — no code required.</p>
+
+        <!-- Step indicators -->
+        <div class="wizard-steps">
+            <div class="wizard-step active" id="ws1" onclick="goStep(1)">1 — Identity</div>
+            <div class="wizard-step" id="ws2" onclick="goStep(2)">2 — AI Brain</div>
+            <div class="wizard-step" id="ws3" onclick="goStep(3)">3 — Knowledge</div>
+            <div class="wizard-step" id="ws4" onclick="goStep(4)">4 — Preview</div>
+        </div>
+
+        <!-- STEP 1: Identity -->
+        <div class="wizard-panel show" id="panel1">
+            <div class="form-group">
+                <label class="form-label">Bot Name <span>*</span></label>
+                <input class="form-input" id="botName" placeholder="e.g. Support Hero, Sales Max…"
+                    oninput="updatePreview()" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Avatar Emoji <span>Pick one</span></label>
+                <div class="emoji-grid" id="emojiGrid"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Short Description <span>Optional</span></label>
+                <input class="form-input" id="botDesc" placeholder="What does this bot do?" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-select" id="botCat">
+                    <option value="support">Customer Support</option>
+                    <option value="sales">Sales</option>
+                    <option value="education">Education</option>
+                    <option value="developer">Developer</option>
+                    <option value="entertainment">Entertainment</option>
+                    <option value="health">Health &amp; Fitness</option>
+                    <option value="finance">Finance</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="wizard-nav">
+                <div></div>
+                <button class="cta-btn cta-primary" onclick="nextStep(1)">Next: AI Brain →</button>
+            </div>
+        </div>
+
+        <!-- STEP 2: AI Brain -->
+        <div class="wizard-panel" id="panel2">
+            <div class="form-group">
+                <label class="form-label">AI Model</label>
+                <div class="model-grid" id="modelGrid"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">System Prompt <span>Defines how your bot behaves</span></label>
+                <textarea class="form-textarea" id="systemPrompt" rows="6"
+                    placeholder="You are a helpful assistant named {botName}. You help users with…"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Creativity <span id="creativityLabel">50</span></label>
+                <div class="slider-wrap">
+                    <span style="font-size:13px;color:var(--text-2)">Precise</span>
+                    <input type="range" min="0" max="100" value="50" id="creativity"
+                        oninput="document.getElementById('creativityLabel').textContent=this.value" />
+                    <span style="font-size:13px;color:var(--text-2)">Creative</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Response Length</label>
+                <div style="display:flex;gap:10px">
+                    <button class="cat-btn active" id="len-short" onclick="setLen('short')">Short</button>
+                    <button class="cat-btn" id="len-medium" onclick="setLen('medium')">Medium</button>
+                    <button class="cat-btn" id="len-long" onclick="setLen('long')">Detailed</button>
+                </div>
+            </div>
+            <div class="wizard-nav">
+                <button class="cta-btn cta-ghost" onclick="goStep(1)">← Back</button>
+                <button class="cta-btn cta-primary" onclick="nextStep(2)">Next: Knowledge →</button>
+            </div>
+        </div>
+
+        <!-- STEP 3: Knowledge Base -->
+        <div class="wizard-panel" id="panel3">
+            <p style="color:var(--text-2);font-size:14px;margin-bottom:24px">Add files, URLs or Q&amp;A pairs to give
+                your bot extra context. <em>All optional.</em></p>
+            <div class="form-group">
+                <label class="form-label">Upload Files <span>.txt, .md, .pdf</span></label>
+                <input type="file" id="kbFileInput" multiple accept=".txt,.md,.pdf" style="display:none"
+                    onchange="addKbFiles(this)" />
+                <button class="cta-btn cta-ghost" onclick="document.getElementById('kbFileInput').click()">📄 Choose
+                    Files</button>
+                <div class="knowledge-items" id="kbFilesList" style="margin-top:14px"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Add URL <span>Bot will reference this page</span></label>
+                <div style="display:flex;gap:10px">
+                    <input class="form-input" id="kbUrl" placeholder="https://your-docs.com/page" />
+                    <button class="cta-btn cta-ghost" onclick="addUrl()">Add</button>
+                </div>
+                <div class="knowledge-items" id="kbUrlList" style="margin-top:14px"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Manual Q&amp;A</label>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                    <input class="form-input" id="kbQ" placeholder="Question…" />
+                    <input class="form-input" id="kbA" placeholder="Answer…" />
+                    <button class="cta-btn cta-ghost" onclick="addQA()">Add Q&amp;A Pair</button>
+                </div>
+                <div class="knowledge-items" id="kbQaList" style="margin-top:14px"></div>
+            </div>
+            <div class="wizard-nav">
+                <button class="cta-btn cta-ghost" onclick="goStep(2)">← Back</button>
+                <button class="cta-btn cta-primary" onclick="nextStep(3)">Next: Preview →</button>
+            </div>
+        </div>
+
+        <!-- STEP 4: Preview & Launch -->
+        <div class="wizard-panel" id="panel4">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+                <div>
+                    <h3 style="font-family:var(--font-title);font-size:18px;font-weight:700;margin-bottom:6px">Bot
+                        Summary</h3>
+                    <div id="botSummary" style="color:var(--text-2);font-size:14px;line-height:1.8"></div>
+                </div>
+                <div>
+                    <h3 style="font-family:var(--font-title);font-size:18px;font-weight:700;margin-bottom:6px">Live
+                        Preview</h3>
+                    <div class="preview-chat" id="previewChat">
+                        <div class="preview-msg ai" id="previewGreeting">Hi! I'm your bot. Send me a message to test me!
+                        </div>
+                    </div>
+                    <div class="preview-input">
+                        <input id="previewInput" placeholder="Test your bot…"
+                            onkeydown="if(event.key==='Enter')sendPreview()" />
+                        <button class="cta-btn cta-primary" onclick="sendPreview()"
+                            style="padding:10px 20px">Send</button>
+                    </div>
+                </div>
+            </div>
+            <div class="wizard-nav" style="margin-top:40px">
+                <button class="cta-btn cta-ghost" onclick="goStep(3)">← Back</button>
+                <div style="display:flex;gap:12px">
+                    <button class="cta-btn cta-ghost" onclick="saveDraft()">💾 Save Draft</button>
+                    <button class="cta-btn cta-primary" onclick="launchBot()">🚀 Launch &amp; Go to Channels →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="platform.js"></script>
+    <script>
+        // ── State ──────────────────────────────────────────────────────────
+        let currentStep = 1;
+        let selectedEmoji = '🤖';
+        let selectedModel = 'Llama 3';
+        let responseLen = 'medium';
+        const kbFiles = [], kbUrls = [], kbQA = [];
+        let editingId = null;
+
+        const EMOJIS = ['🤖', '🦾', '👾', '🧠', '🎯', '💼', '🎧', '🛡️', '⚡', '🌟',
+            '🦊', '🐉', '🚀', '💡', '🔮', '🏆', '🎓', '💬', '📊', '🌈',
+            '🦋', '🎪', '🌊', '🔥', '❄️', '🌙', '☀️', '🎸', '🍀', '💎'];
+
+        // ── Load edit mode ─────────────────────────────────────────────────
+        (function init() {
+            const params = new URLSearchParams(window.location.search);
+            editingId = params.get('id');
+            const tmplId = params.get('template');
+
+            if (editingId) {
+                const bot = BotStore.get(editingId);
+                if (bot) {
+                    document.getElementById('pageTitle').textContent = 'Edit Bot';
+                    document.getElementById('botName').value = bot.name || '';
+                    document.getElementById('botDesc').value = bot.desc || '';
+                    document.getElementById('botCat').value = bot.cat || 'support';
+                    document.getElementById('systemPrompt').value = bot.systemPrompt || '';
+                    document.getElementById('creativity').value = bot.creativity || 50;
+                    document.getElementById('creativityLabel').textContent = bot.creativity || 50;
+                    selectedEmoji = bot.emoji || '🤖';
+                    selectedModel = bot.model || 'Llama 3';
+                    responseLen = bot.responseLen || 'medium';
+                }
+            } else if (tmplId) {
+                const t = MARKETPLACE_TEMPLATES.find(x => x.id === tmplId);
+                if (t) {
+                    document.getElementById('botName').value = t.name;
+                    document.getElementById('botDesc').value = t.description;
+                    document.getElementById('systemPrompt').value = t.system;
+                    selectedEmoji = t.emoji;
+                    selectedModel = t.model;
+                }
+            }
+
+            renderEmojiGrid();
+            renderModelGrid();
+            setLen(responseLen);
+            updatePreview();
+        })();
+
+        // ── Emoji grid ─────────────────────────────────────────────────────
+        function renderEmojiGrid() {
+            document.getElementById('emojiGrid').innerHTML = EMOJIS.map(e =>
+                `<button class="emoji-btn${e === selectedEmoji ? ' selected' : ''}" onclick="selectEmoji('${e}')">${e}</button>`
+            ).join('');
+        }
+        function selectEmoji(e) { selectedEmoji = e; renderEmojiGrid(); updatePreview(); }
+
+        // ── Model grid ─────────────────────────────────────────────────────
+        function renderModelGrid() {
+            document.getElementById('modelGrid').innerHTML = MODELS.map(m =>
+                `<div class="model-card${m.name === selectedModel ? ' selected' : ''}" onclick="selectModel('${m.name}')">
+          <div class="model-card-grad" style="background:${m.grad}"></div>
+          <div class="model-card-name">${m.name} <span class="model-badge ${m.badge}">${m.badge}</span></div>
+          <div class="model-card-desc">${m.desc}</div>
+        </div>`
+            ).join('');
+        }
+        function selectModel(n) { selectedModel = n; renderModelGrid(); }
+
+        // ── Length ─────────────────────────────────────────────────────────
+        function setLen(l) {
+            responseLen = l;
+            ['short', 'medium', 'long'].forEach(x => document.getElementById('len-' + x)?.classList.toggle('active', x === l));
+        }
+
+        // ── Steps ──────────────────────────────────────────────────────────
+        function goStep(n) {
+            document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('show'));
+            document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+            document.getElementById('panel' + n).classList.add('show');
+            document.getElementById('ws' + n).classList.add('active');
+            currentStep = n;
+            if (n === 4) refreshSummary();
+        }
+
+        function nextStep(n) {
+            if (n === 1 && !document.getElementById('botName').value.trim()) {
+                showToast('Please enter a bot name', 'error', '⚠️'); return;
+            }
+            document.getElementById('ws' + n).classList.add('done');
+            goStep(n + 1);
+        }
+
+        // ── Knowledge ──────────────────────────────────────────────────────
+        function addKbFiles(input) {
+            [...input.files].forEach(f => { kbFiles.push(f.name); renderKbList('kbFilesList', kbFiles, 'file'); });
+            input.value = '';
+        }
+        function addUrl() {
+            const v = document.getElementById('kbUrl').value.trim();
+            if (!v) return; kbUrls.push(v); document.getElementById('kbUrl').value = '';
+            renderKbList('kbUrlList', kbUrls, 'url');
+        }
+        function addQA() {
+            const q = document.getElementById('kbQ').value.trim(), a = document.getElementById('kbA').value.trim();
+            if (!q || !a) return;
+            kbQA.push({ q, a });
+            document.getElementById('kbQ').value = ''; document.getElementById('kbA').value = '';
+            renderKbList('kbQaList', kbQA.map(x => x.q + ' → ' + x.a), 'qa');
+        }
+        function renderKbList(id, arr, type) {
+            const icons = { file: '📄', url: '🔗', qa: '❓' };
+            document.getElementById(id).innerHTML = arr.map((item, i) =>
+                `<div class="knowledge-item">${icons[type]} ${esH(String(item))}
+          <button class="ki-del" onclick="removeKb('${type}',${i})">×</button></div>`
+            ).join('');
+        }
+        function removeKb(type, i) {
+            if (type === 'file') kbFiles.splice(i, 1);
+            if (type === 'url') kbUrls.splice(i, 1);
+            if (type === 'qa') kbQA.splice(i, 1);
+            renderKbList('kbFilesList', kbFiles, 'file');
+            renderKbList('kbUrlList', kbUrls, 'url');
+            renderKbList('kbQaList', kbQA.map(x => x.q + ' → ' + x.a), 'qa');
+        }
+        function esH(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+        // ── Preview ────────────────────────────────────────────────────────
+        function updatePreview() {
+            const name = document.getElementById('botName')?.value || 'Bot';
+            document.getElementById('previewGreeting').textContent = `Hi! I'm ${name} ${selectedEmoji}. Send me a message to test me!`;
+        }
+
+        async function sendPreview() {
+            const inp = document.getElementById('previewInput');
+            const msg = inp?.value.trim(); if (!msg) return;
+            const chat = document.getElementById('previewChat');
+            inp.value = '';
+            const uDiv = document.createElement('div');
+            uDiv.className = 'preview-msg user'; uDiv.textContent = msg;
+            chat.appendChild(uDiv);
+            const load = document.createElement('div');
+            load.className = 'preview-msg ai'; load.textContent = '…';
+            chat.appendChild(load);
+            chat.scrollTop = chat.scrollHeight;
+            try {
+                const sp = document.getElementById('systemPrompt').value || `You are ${document.getElementById('botName').value || 'a helpful bot'}.`;
+                const res = await fetch(`${API_BASE}/chat`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model: selectedModel, messages: [{ role: 'system', content: sp }, { role: 'user', content: msg }] }),
+                    signal: AbortSignal.timeout(30000)
+                });
+                if (!res.ok) throw new Error('API error');
+                let text = '';
+                const reader = res.body.getReader(); const dec = new TextDecoder();
+                while (true) {
+                    const { done, value } = await reader.read(); if (done) break;
+                    dec.decode(value).split('\n').forEach(line => { if (line.startsWith('data:')) { const d = line.slice(5).trim(); if (d === '[DONE]') return; try { const j = JSON.parse(d); const c = j.choices?.[0]?.delta?.content || ''; text += c; load.textContent = text; } catch { } } });
+                }
+                if (!text) load.textContent = 'I am ready to help!';
+            } catch { load.textContent = 'Preview error — check server is running.'; }
+        }
+
+        // ── Summary ────────────────────────────────────────────────────────
+        function refreshSummary() {
+            document.getElementById('botSummary').innerHTML = `
+        <div><strong>Name:</strong> ${esH(document.getElementById('botName').value || '—')}</div>
+        <div><strong>Emoji:</strong> ${selectedEmoji}</div>
+        <div><strong>Model:</strong> ${selectedModel}</div>
+        <div><strong>Category:</strong> ${document.getElementById('botCat').value}</div>
+        <div><strong>Response:</strong> ${responseLen}</div>
+        <div><strong>Knowledge:</strong> ${kbFiles.length} files, ${kbUrls.length} URLs, ${kbQA.length} Q&As</div>`;
+            updatePreview();
+        }
+
+        // ── Save / Launch ──────────────────────────────────────────────────
+        function getBotData() {
+            return {
+                id: editingId || crypto.randomUUID(),
+                name: document.getElementById('botName').value.trim() || 'My Bot',
+                emoji: selectedEmoji,
+                desc: document.getElementById('botDesc').value.trim(),
+                cat: document.getElementById('botCat').value,
+                model: selectedModel,
+                systemPrompt: document.getElementById('systemPrompt').value.trim(),
+                creativity: parseInt(document.getElementById('creativity').value),
+                responseLen,
+                kbFiles, kbUrls, kbQA,
+                active: true,
+                channels: editingId ? (BotStore.get(editingId)?.channels || {}) : {},
+                messageCount: editingId ? (BotStore.get(editingId)?.messageCount || 0) : 0,
+            };
+        }
+
+        function saveDraft() {
+            const bot = getBotData(); BotStore.save(bot); editingId = bot.id;
+            showToast('Draft saved!', 'success', '💾');
+        }
+
+        function launchBot() {
+            const bot = getBotData();
+            if (!bot.name) { showToast('Bot needs a name', 'error', '⚠️'); return; }
+            BotStore.save(bot);
+            showToast('Bot saved! Redirecting to channels…', 'success', '🚀');
+            setTimeout(() => { window.location.href = 'channels.html?id=' + bot.id; }, 1200);
+        }
+    </script>
+</body>
+
+</html>

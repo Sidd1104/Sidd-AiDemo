@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marketplace — Sidd-AI</title>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="platform.css" />
+</head>
+
+<body>
+    <canvas id="space-canvas"></canvas>
+    <div id="platformNav"></div>
+
+    <div class="marketplace-wrap">
+        <div style="text-align:center;padding:60px 0 40px">
+            <h1 style="font-family:var(--font-title);font-size:40px;font-weight:800;margin-bottom:12px">Bot Marketplace
+            </h1>
+            <p style="color:var(--text-2);font-size:16px;max-width:520px;margin:0 auto">Buy proven templates. Install in
+                one click. Go live in seconds.</p>
+        </div>
+
+        <!-- Search + filters -->
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:28px;flex-wrap:wrap">
+            <input type="text" class="form-input" id="mSearch" placeholder="🔍 Search templates…"
+                oninput="renderMarket()" style="min-width:240px" />
+            <div class="cat-filters" id="catFilters">
+                <button class="cat-btn active" onclick="setCat('all',this)">All</button>
+                <button class="cat-btn" onclick="setCat('support',this)">Support</button>
+                <button class="cat-btn" onclick="setCat('sales',this)">Sales</button>
+                <button class="cat-btn" onclick="setCat('developer',this)">Developer</button>
+                <button class="cat-btn" onclick="setCat('education',this)">Education</button>
+                <button class="cat-btn" onclick="setCat('entertainment',this)">Entertainment</button>
+                <button class="cat-btn" onclick="setCat('finance',this)">Finance</button>
+                <button class="cat-btn" onclick="setCat('health',this)">Health</button>
+            </div>
+        </div>
+
+        <div class="market-grid" id="marketGrid"></div>
+
+        <!-- Submit your bot CTA -->
+        <div
+            style="text-align:center;margin-top:72px;padding:56px 24px;background:var(--bg-card);border:1px solid var(--border);border-radius:24px">
+            <div style="font-size:48px;margin-bottom:16px">💡</div>
+            <h2 style="font-family:var(--font-title);font-size:26px;font-weight:800;margin-bottom:10px">Have a Great Bot
+                Template?</h2>
+            <p
+                style="color:var(--text-2);font-size:15px;margin-bottom:28px;max-width:440px;margin-left:auto;margin-right:auto">
+                Submit your bot to the marketplace. Earn $Snappy from every install. Build once, earn forever.</p>
+            <button class="cta-btn cta-primary"
+                onclick="showToast('Submissions opening soon! Join our Telegram for updates.','info','📬')">Submit Your
+                Bot →</button>
+        </div>
+    </div>
+
+    <!-- Install confirmation modal -->
+    <div class="modal-overlay" id="installModal" onclick="if(event.target===this)closeInstall()">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="installModalTitle">Install Template</h3>
+                <button class="modal-close" onclick="closeInstall()">✕</button>
+            </div>
+            <p class="modal-desc" id="installModalDesc"></p>
+            <div style="display:flex;gap:10px;margin-top:20px">
+                <button class="cta-btn cta-primary" id="installConfirmBtn" style="flex:1">Install &amp; Open Builder
+                    →</button>
+                <button class="cta-btn cta-ghost" onclick="closeInstall()" style="flex:1">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="platform.js"></script>
+    <script>
+        let activeCat = 'all';
+        let installTmpl = null;
+
+        function setCat(cat, btn) {
+            activeCat = cat;
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderMarket();
+        }
+
+        function renderMarket() {
+            const q = (document.getElementById('mSearch')?.value || '').toLowerCase();
+            let tmpl = MARKETPLACE_TEMPLATES;
+            if (activeCat !== 'all') tmpl = tmpl.filter(t => t.category === activeCat);
+            if (q) tmpl = tmpl.filter(t => t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q));
+
+            document.getElementById('marketGrid').innerHTML = tmpl.length ? tmpl.map(t => `
+        <div class="market-card">
+          <div class="mc-head">
+            <div class="mc-emoji">${t.emoji}</div>
+            <div>
+              <div class="mc-name">${esc(t.name)}</div>
+              <div class="mc-model">${t.model} · ${t.category}</div>
+            </div>
+          </div>
+          <p class="mc-desc">${esc(t.description)}</p>
+          <div class="mc-footer">
+            <span class="mc-installs">⬇ ${t.installs.toLocaleString()} installs</span>
+            <span class="mc-price-free">${t.price === 0 ? 'Free' : '$' + t.price + ' $Snappy'}</span>
+          </div>
+          <button class="cta-btn cta-primary" onclick="openInstall('${t.id}')"
+            style="width:100%;margin-top:14px;padding:10px">Install Template →</button>
+        </div>`).join('')
+                : `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-2)"><div style="font-size:48px;margin-bottom:16px">🔍</div><h3>No templates found</h3></div>`;
+        }
+
+        function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+        function openInstall(id) {
+            installTmpl = MARKETPLACE_TEMPLATES.find(t => t.id === id);
+            if (!installTmpl) return;
+            document.getElementById('installModalTitle').textContent = 'Install: ' + installTmpl.name + ' ' + installTmpl.emoji;
+            document.getElementById('installModalDesc').textContent = 'This will open the Bot Builder pre-filled with the "' + installTmpl.name + '" template. You can customize it before launching.';
+            document.getElementById('installConfirmBtn').onclick = () => { window.location.href = 'builder.html?template=' + installTmpl.id; };
+            document.getElementById('installModal').classList.add('open');
+        }
+        function closeInstall() { document.getElementById('installModal').classList.remove('open'); }
+
+        renderMarket();
+    </script>
+</body>
+
+</html>

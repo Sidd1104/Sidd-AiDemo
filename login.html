@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login — Sidd-AI</title>
+    <meta name="description" content="Sign in or create your Sidd-AI account." />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="platform.css" />
+    <style>
+        /* ── Auth page layout ── */
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: calc(var(--nav-h) + 40px) 20px 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 48px 44px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: var(--shadow);
+            animation: slideUp 0.45s cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(28px) scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ── Logo ── */
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 32px;
+        }
+
+        .auth-logo-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 13px;
+            background: var(--grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 24px rgba(250, 204, 21, 0.3);
+        }
+
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--grad);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 0 15px rgba(250, 204, 21, 0.2);
+        }
+
+        .auth-logo-text {
+            font-family: var(--font-title);
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .auth-logo-accent {
+            color: var(--purple-l);
+        }
+
+        /* ── Tab switcher ── */
+        .auth-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 32px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-2);
+            font-family: var(--font);
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: all .25s;
+        }
+
+        .auth-tab.active {
+            background: var(--grad);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(250, 204, 21, 0.2);
+        }
+
+        /* ── Heading ── */
+        .auth-heading {
+            font-family: var(--font-title);
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .auth-sub {
+            font-size: 14px;
+            color: var(--text-2);
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        /* ── Form ── */
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .auth-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .auth-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-2);
+            letter-spacing: .03em;
+        }
+
+        .auth-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 13px 16px;
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 15px;
+            outline: none;
+            transition: border-color .2s, background .2s, box-shadow .2s;
+        }
+
+        .auth-input::placeholder {
+            color: var(--text-2);
+            opacity: .6;
+        }
+
+        .auth-input:focus {
+            border-color: var(--purple);
+            background: rgba(250, 204, 21, 0.05);
+            box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1);
+        }
+
+        /* ── Error / Success alerts ── */
+        .auth-alert {
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            align-items: flex-start;
+            gap: 10px;
+            line-height: 1.5;
+        }
+
+        .auth-alert.show {
+            display: flex;
+        }
+
+        .auth-alert.error {
+            background: rgba(239, 68, 68, .12);
+            border: 1px solid rgba(239, 68, 68, .3);
+            color: #fca5a5;
+        }
+
+        .auth-alert.success {
+            background: rgba(16, 185, 129, .12);
+            border: 1px solid rgba(16, 185, 129, .3);
+            color: #6ee7b7;
+        }
+
+        /* ── Submit button ── */
+        .auth-submit {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: var(--grad);
+            color: #fff;
+            font-family: var(--font);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 24px rgba(250, 204, 21, 0.25);
+            transition: transform .25s, box-shadow .25s, opacity .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .auth-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 32px rgba(250, 204, 21, 0.4);
+        }
+
+        .auth-submit:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Spinner inside button */
+        .btn-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .65s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── Divider ── */
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-2);
+            font-size: 12px;
+            margin: 4px 0;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── Footer link ── */
+        .auth-footer {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-2);
+            margin-top: 8px;
+        }
+
+        .auth-footer a,
+        .auth-footer span {
+            color: var(--purple-l);
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-footer a:hover,
+        .auth-footer span:hover {
+            text-decoration: underline;
+        }
+
+        /* ── Password strength bar ── */
+        .pw-strength {
+            height: 3px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .pw-strength-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width .3s, background .3s;
+        }
+
+        /* ── Panel switch animation ── */
+        .auth-panel {
+            animation: fadeIn .3s ease both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* ── Subtle top accent line ── */
+        .auth-card::before {
+            content: '';
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: var(--grad);
+            border-radius: 0 0 4px 4px;
+        }
+
+        .auth-card {
+            position: relative;
+        }
+
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 32px 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="space-canvas"></canvas>
+    <div id="platformNav"></div>
+
+    <div class="auth-page">
+        <div class="auth-card">
+
+            <!-- Logo -->
+            <div class="auth-logo">
+                <div class="auth-logo-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                        <polygon
+                            points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
+                            fill="url(#authGrad)" stroke="none" />
+                        <defs>
+                            <linearGradient id="authGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#facc15" />
+                                <stop offset="100%" stop-color="#f43f5e" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <span class="auth-logo-text">Sidd<span class="auth-logo-accent">-AI</span></span>
+            </div>
+
+            <!-- Tab switcher -->
+            <div class="auth-tabs" role="tablist">
+                <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')" role="tab">Sign In</button>
+                <button class="auth-tab" id="tabRegister" onclick="switchTab('register')" role="tab">Create
+                    Account</button>
+            </div>
+
+            <!-- ── LOGIN PANEL ── -->
+            <div id="panelLogin" class="auth-panel">
+                <h1 class="auth-heading">Welcome back</h1>
+                <p class="auth-sub">Sign in to your Sidd-AI account</p>
+
+                <div class="auth-alert" id="loginAlert"></div>
+
+                <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="auth-field">
+                        <label class="auth-label" for="loginEmail">Email</label>
+                        <input class="auth-input" id="loginEmail" type="email" placeholder="you@example.com"
+                            autocomplete="email" required />
+                    </div>
+                    <div class="auth-field">
+                        <label class="auth-label" for="loginPassword">Password</label>
+                        <input class="auth-input" id="loginPassword" type="password" placeholder="••••••••"
+                            autocomplete="current-password" required />
+                    </div>
+                    <button class="auth-submit" id="loginBtn" type="submit">
+                        <div class="btn-spinner" id="loginSpinner"></div>
+                        <span id="loginBtnText">Sign In →</span>
+                    </button>
+                </form>
+
+                <div class="auth-footer" style="margin-top:20px">
+                    No account? <span onclick="switchTab('register')">Create one free →</span>
+                </div>
+            </div>
+
+            <!-- ── REGISTER PANEL ── -->
+            <div id="panelRegister" class="auth-panel" style="display:none">
+                <h1 class="auth-heading">Create account</h1>
+                <p class="auth-sub">Build AI bots. Earn $Snappy. Free to start.</p>
+
+                <div class="auth-alert" id="registerAlert"></div>
+
+                <form class="auth-form" id="registerForm" onsubmit="handleRegister(event)">
+                    <div class="auth-field">
+                        <label class="auth-label" for="regName">Full Name</label>
+                        <input class="auth-input" id="regName" type="text" placeholder="Your name" autocomplete="name"
+                            required />
+                    </div>
+                    <div class="auth-field">
+                        <label class="auth-label" for="regEmail">Email</label>
+                        <input class="auth-input" id="regEmail" type="email" placeholder="you@example.com"
+                            autocomplete="email" required />
+                    </div>
+                    <div class="auth-field">
+                        <label class="auth-label" for="regPassword">Password</label>
+                        <input class="auth-input" id="regPassword" type="password" placeholder="Min 6 characters"
+                            autocomplete="new-password" required oninput="updateStrength(this.value)" />
+                        <div class="pw-strength">
+                            <div class="pw-strength-fill" id="pwFill" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label class="auth-label" for="regConfirm">Confirm Password</label>
+                        <input class="auth-input" id="regConfirm" type="password" placeholder="Repeat password"
+                            autocomplete="new-password" required />
+                    </div>
+                    <button class="auth-submit" id="registerBtn" type="submit">
+                        <div class="btn-spinner" id="registerSpinner"></div>
+                        <span id="registerBtnText">Create Account →</span>
+                    </button>
+                </form>
+
+                <div class="auth-footer" style="margin-top:20px">
+                    Already have an account? <span onclick="switchTab('login')">Sign in →</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="platform.js"></script>
+    <script>
+        const API = window.location.protocol === 'file:'
+            ? 'http://localhost:3001/api'
+            : '/api';
+
+        // ── If already logged in, go straight to dashboard ──
+        (function () {
+            const token = localStorage.getItem('sidd-auth-token');
+            if (token) {
+                fetch(`${API}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } })
+                    .then(r => r.ok ? r.json() : null)
+                    .then(user => { if (user) window.location.href = 'dashboard.html'; })
+                    .catch(() => { });
+            }
+        })();
+
+        // ── Tab logic ──────────────────────────────────────
+        function switchTab(tab) {
+            const isLogin = tab === 'login';
+            document.getElementById('tabLogin').classList.toggle('active', isLogin);
+            document.getElementById('tabRegister').classList.toggle('active', !isLogin);
+            document.getElementById('panelLogin').style.display = isLogin ? '' : 'none';
+            document.getElementById('panelRegister').style.display = isLogin ? 'none' : '';
+            // Re-trigger animation
+            const panel = document.getElementById(isLogin ? 'panelLogin' : 'panelRegister');
+            panel.style.animation = 'none';
+            panel.offsetHeight; // reflow
+            panel.style.animation = '';
+        }
+
+        // ── Password strength ────────────────────────────
+        function updateStrength(pw) {
+            let score = 0;
+            if (pw.length >= 6) score++;
+            if (pw.length >= 10) score++;
+            if (/[A-Z]/.test(pw)) score++;
+            if (/[0-9]/.test(pw)) score++;
+            if (/[^A-Za-z0-9]/.test(pw)) score++;
+            const fill = document.getElementById('pwFill');
+            const colors = ['#ef4444', '#f59e0b', '#f59e0b', '#10b981', '#10b981'];
+            fill.style.width = (score / 5 * 100) + '%';
+            fill.style.background = colors[Math.max(0, score - 1)] || '#ef4444';
+        }
+
+        // ── Alert helper ─────────────────────────────────
+        function showAlert(id, msg, type) {
+            const el = document.getElementById(id);
+            el.textContent = (type === 'error' ? '⚠ ' : '✓ ') + msg;
+            el.className = `auth-alert ${type} show`;
+        }
+        function clearAlert(id) {
+            document.getElementById(id).className = 'auth-alert';
+        }
+
+        // ── Set button loading state ──────────────────────
+        function setLoading(btnId, spinnerId, textId, loading, label) {
+            document.getElementById(btnId).disabled = loading;
+            document.getElementById(spinnerId).style.display = loading ? 'block' : 'none';
+            document.getElementById(textId).textContent = loading ? 'Please wait…' : label;
+        }
+
+        // ── Login ─────────────────────────────────────────
+        async function handleLogin(e) {
+            e.preventDefault();
+            clearAlert('loginAlert');
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Sign In →');
+
+            try {
+                const res = await fetch(`${API}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Login failed.');
+                localStorage.setItem('sidd-auth-token', data.token);
+                localStorage.setItem('sidd-auth-user', JSON.stringify(data.user));
+                showToast('Welcome back, ' + data.user.name + '! 🎉', 'success', '✅');
+                setTimeout(() => window.location.href = 'dashboard.html', 700);
+            } catch (err) {
+                showAlert('loginAlert', err.message, 'error');
+            } finally {
+                setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Sign In →');
+            }
+        }
+
+        // ── Register ─────────────────────────────────────
+        async function handleRegister(e) {
+            e.preventDefault();
+            clearAlert('registerAlert');
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirm').value;
+
+            if (password !== confirm) {
+                return showAlert('registerAlert', 'Passwords do not match.', 'error');
+            }
+
+            setLoading('registerBtn', 'registerSpinner', 'registerBtnText', true, 'Create Account →');
+
+            try {
+                const res = await fetch(`${API}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Registration failed.');
+                localStorage.setItem('sidd-auth-token', data.token);
+                localStorage.setItem('sidd-auth-user', JSON.stringify(data.user));
+                showToast('Account created! Welcome, ' + data.user.name + ' 🚀', 'success', '🎉');
+                setTimeout(() => window.location.href = 'dashboard.html', 800);
+            } catch (err) {
+                showAlert('registerAlert', err.message, 'error');
+            } finally {
+                setLoading('registerBtn', 'registerSpinner', 'registerBtnText', false, 'Create Account →');
+            }
+        }
+    </script>
+</body>
+
+</html>
