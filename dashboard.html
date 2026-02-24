@@ -72,13 +72,115 @@
             border-color: rgba(239, 68, 68, 0.5);
         }
 
+        /* ── Profile Section ── */
+        .profile-card {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .profile-row {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .profile-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .profile-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-2);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .profile-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .profile-input:focus {
+            border-color: var(--purple);
+            background: rgba(250, 204, 21, 0.05);
+            box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1);
+        }
+
+        /* ── Tabs ── */
+        .dash-tabs {
+            display: flex;
+            gap: 24px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 32px;
+        }
+
+        .dash-tab {
+            padding: 12px 4px;
+            color: var(--text-2);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .dash-tab:hover {
+            color: var(--text);
+        }
+
+        .dash-tab.active {
+            color: var(--teal);
+        }
+
+        .dash-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--grad);
+            border-radius: 2px;
+        }
+
+        .dash-section {
+            display: none;
+        }
+
+        .dash-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .dash-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 16px;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         .dash-header-right {
@@ -164,23 +266,58 @@
             </div>
             <div class="glass-card stat-card">
                 <div class="stat-card-n text-gold" id="statFredo">0</div>
-                <div class="stat-card-l">$Snappy Earned</div>
+                <div class="stat-card-l">$Sharp Earned</div>
             </div>
         </div>
 
-        <!-- Filter/search bar -->
-        <div style="display:flex;gap:12px;margin-bottom:24px;align-items:center">
-            <input type="text" class="form-input" id="botSearch" placeholder="🔍 Search bots…" oninput="renderBots()"
-                style="max-width:280px" />
-            <select class="form-select" id="botFilter" onchange="renderBots()" style="max-width:180px">
-                <option value="all">All bots</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-            </select>
+        <div class="dash-tabs">
+            <div class="dash-tab active" data-tab="bots" onclick="switchDashTab('bots')">My Bots</div>
+            <div class="dash-tab" data-tab="profile" onclick="switchDashTab('profile')">Profile Settings</div>
         </div>
 
-        <!-- Bots grid -->
-        <div class="bots-grid" id="botsGrid"></div>
+        <!-- Bots Section -->
+        <div id="sectionBots" class="dash-section active">
+            <!-- Filter/search bar -->
+            <div style="display:flex;gap:12px;margin-bottom:24px;align-items:center">
+                <input type="text" class="form-input" id="botSearch" placeholder="🔍 Search bots…"
+                    oninput="renderBots()" style="max-width:280px" />
+                <select class="form-select" id="botFilter" onchange="renderBots()" style="max-width:180px">
+                    <option value="all">All bots</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+
+            <!-- Bots grid -->
+            <div class="bots-grid" id="botsGrid"></div>
+        </div>
+
+        <!-- Profile Section -->
+        <div id="sectionProfile" class="dash-section">
+            <div class="glass-card profile-card">
+                <h2 style="margin-bottom:24px; font-family:var(--font-title)">Account Settings</h2>
+                <form onsubmit="handleProfileUpdate(event)" class="profile-row">
+                    <div class="profile-field">
+                        <label class="profile-label">Full Name</label>
+                        <input type="text" id="profName" class="profile-input" required placeholder="Enter your name">
+                    </div>
+                    <div class="profile-field">
+                        <label class="profile-label">Email Address</label>
+                        <input type="email" id="profEmail" class="profile-input" required readonly
+                            style="opacity:0.7; cursor:not-allowed">
+                        <span style="font-size:11px; color:var(--text-3)">Email cannot be changed</span>
+                    </div>
+                    <div class="profile-field">
+                        <label class="profile-label">Bio (Optional)</label>
+                        <textarea id="profBio" class="profile-input" rows="3"
+                            placeholder="Tell us about yourself..."></textarea>
+                    </div>
+                    <div style="margin-top:12px">
+                        <button type="submit" class="cta-btn cta-primary" style="width:100%">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Delete confirm modal -->
@@ -217,10 +354,19 @@
                 });
                 if (!res.ok) return redirect();
                 currentUser = await res.json();
+
+                // Keep local user in sync
+                localStorage.setItem('sidd-auth-user', JSON.stringify(currentUser));
+
                 showUser(currentUser);
                 document.getElementById('authGuard').style.display = 'none';
                 renderBots();
                 updateStats();
+                initProfileForm();
+
+                // Check for tab in URL
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('tab')) switchDashTab(params.get('tab'));
             } catch (e) {
                 redirect();
             }
@@ -230,6 +376,23 @@
             window.location.href = 'login.html';
         }
 
+        // ── Navigation / Tabs ────────────────────────────────────────
+        function switchDashTab(tab) {
+            document.querySelectorAll('.dash-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+            document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
+
+            if (tab === 'bots') {
+                document.getElementById('sectionBots').classList.add('active');
+            } else if (tab === 'profile') {
+                document.getElementById('sectionProfile').classList.add('active');
+            }
+
+            // Update URL without reload
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tab);
+            window.history.pushState({}, '', url);
+        }
+
         function showUser(user) {
             const initials = user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
             document.getElementById('userAvatar').textContent = initials;
@@ -237,6 +400,33 @@
             document.getElementById('userEmail').textContent = user.email;
             document.getElementById('userChip').style.display = 'flex';
             document.getElementById('logoutBtn').style.display = '';
+
+            // Refresh nav if needed
+            if (typeof injectNav === 'function') injectNav();
+        }
+
+        function initProfileForm() {
+            if (!currentUser) return;
+            document.getElementById('profName').value = currentUser.name;
+            document.getElementById('profEmail').value = currentUser.email;
+        }
+
+        async function handleProfileUpdate(e) {
+            e.preventDefault();
+            const newName = document.getElementById('profName').value.trim();
+            const bio = document.getElementById('profBio').value.trim();
+
+            if (!newName) return showToast('Name is required', 'error', '⚠️');
+
+            // Simulate API update
+            showToast('Saving profile...', 'info', '⏳');
+
+            setTimeout(() => {
+                currentUser.name = newName;
+                localStorage.setItem('sidd-auth-user', JSON.stringify(currentUser));
+                showUser(currentUser);
+                showToast('Profile updated successfully!', 'success', '✅');
+            }, 800);
         }
 
         async function handleLogout() {

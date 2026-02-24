@@ -64,13 +64,65 @@ function getActivePage() {
 
 function renderNav() {
     const active = getActivePage();
-    const isIndex = !active || active === 'index.html';
+    const token = localStorage.getItem('sidd-auth-token');
+    let user = null;
+    try {
+        user = JSON.parse(localStorage.getItem('sidd-auth-user'));
+    } catch (e) { }
+
     const links = [
         { href: 'dashboard.html', label: 'Dashboard' },
         { href: 'pricing.html', label: 'Pricing' },
         { href: 'marketplace.html', label: 'Marketplace' },
-        { href: 'index.html', label: '🪙 $Snappy' },
+        { href: 'index.html', label: '🪙 $Sharp' },
     ];
+
+    const navLinksHtml = links.map(l => `<a href="${l.href}" class="nav-link${active === l.href || (l.href === 'dashboard.html' && active === '') ? ' active' : ''}">${l.label}</a>`).join('');
+
+    let navActionsHtml = '';
+    if (token && user) {
+        const initials = user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        navActionsHtml = `
+            <div class="nav-user-profile" id="navUserProfile">
+                <div class="nav-user-chip" onclick="toggleProfileDropdown()">
+                    <div class="nav-user-avatar">${initials}</div>
+                    <span class="nav-user-name">${user.name.split(' ')[0]}</span>
+                    <svg class="nav-user-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="nav-profile-dropdown" id="navProfileDropdown">
+                    <div class="dropdown-header">
+                        <div class="dropdown-user-info">
+                            <div class="dropdown-user-name">${user.name}</div>
+                            <div class="dropdown-user-email">${user.email}</div>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="dashboard.html?tab=profile" class="dropdown-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Profile Settings
+                    </a>
+                    <a href="dashboard.html" class="dropdown-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                        My Bots
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item logout" onclick="handleLogout()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        Logout
+                    </button>
+                </div>
+            </div>
+            <a href="builder.html" class="nav-btn nav-btn-primary nav-hide-mobile">Build Bot →</a>
+        `;
+    } else {
+        navActionsHtml = `
+            <a href="login.html" class="nav-btn nav-btn-ghost">Login</a>
+            <a href="builder.html" class="nav-btn nav-btn-primary">Start Building →</a>
+        `;
+    }
+
     return `
     <nav class="platform-nav" id="platNav">
       <div class="nav-brand">
@@ -88,11 +140,10 @@ function renderNav() {
         </a>
       </div>
       <div class="nav-links" id="navLinks">
-        ${links.map(l => `<a href="${l.href}" class="nav-link${active === l.href || (l.href === 'dashboard.html' && active === '') ? ' active' : ''}">${l.label}</a>`).join('')}
+        ${navLinksHtml}
       </div>
       <div class="nav-actions">
-        <a href="login.html" class="nav-btn nav-btn-ghost">Login</a>
-        <a href="builder.html" class="nav-btn nav-btn-primary">Start Building →</a>
+        ${navActionsHtml}
         <button class="nav-hamburger" onclick="toggleMobileNav()" id="hamburger">
           <span></span><span></span><span></span>
         </button>
@@ -108,6 +159,41 @@ function injectNav() {
 function toggleMobileNav() {
     document.getElementById('navLinks')?.classList.toggle('open');
 }
+
+function toggleProfileDropdown() {
+    const dd = document.getElementById('navProfileDropdown');
+    const chip = document.querySelector('.nav-user-chip');
+    if (dd) {
+        const isOpen = dd.classList.toggle('open');
+        chip.classList.toggle('active', isOpen);
+    }
+}
+
+async function handleLogout() {
+    const token = localStorage.getItem('sidd-auth-token');
+    try {
+        await fetch(`${API_BASE}/auth/logout`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+    } catch (e) { }
+    localStorage.removeItem('sidd-auth-token');
+    localStorage.removeItem('sidd-auth-user');
+    showToast('Logged out successfully', 'info', '👋');
+    setTimeout(() => window.location.href = 'login.html', 600);
+}
+
+// Close dropdown on click outside
+document.addEventListener('click', (e) => {
+    const dd = document.getElementById('navProfileDropdown');
+    const chip = document.querySelector('.nav-user-chip');
+    if (dd && dd.classList.contains('open')) {
+        if (!dd.contains(e.target) && !chip.contains(e.target)) {
+            dd.classList.remove('open');
+            chip.classList.remove('active');
+        }
+    }
+});
 
 // ─── Toast (shared) ──────────────────────────────────────────
 function showToast(msg, type = 'info', icon = 'ℹ️') {
