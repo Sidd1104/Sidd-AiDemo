@@ -1,44 +1,162 @@
-'use strict';
-// ═══════════════════════════════════════════════════════════
-//  SIDD-AI PLATFORM — Shared state, Bot CRUD, Nav, Utilities
-// ═══════════════════════════════════════════════════════════
+import { auth, db } from './firebase.js';
+import {
+    collection,
+    doc,
+    getDocs,
+    getDoc,
+    setDoc,
+    updateDoc,
+    deleteDoc,
+    query,
+    where,
+    orderBy,
+    onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const API_BASE = window.location.protocol === 'file:'
     ? 'http://localhost:3001/api'
     : '/api';
 
-// ─── Bot Store (localStorage) ────────────────────────────────
+// ─── Bot Store (Firestore) ───────────────────────────────────
 const BotStore = {
-    _key: 'sidd-ai-bots',
-
-    getAll() {
-        try { return JSON.parse(localStorage.getItem(this._key) || '[]'); }
-        catch { return []; }
+    async getAll() {
+        if (!auth.currentUser) return [];
+        try {
+            const q = query(
+                collection(db, 'bots'),
+                where('userId', '==', auth.currentUser.uid),
+                orderBy('createdAt', 'desc')
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+        } catch (e) {
+            console.error('[BotStore] getAll failed:', e);
+            return [];
+        }
     },
 
-    get(id) {
-        return this.getAll().find(b => b.id === id) || null;
+    async get(id) {
+        try {
+            const docRef = doc(db, 'bots', id);
+            const snap = await getDoc(docRef);
+            return snap.exists() ? { ...snap.data(), id: snap.id } : null;
+        } catch (e) { return null; }
     },
 
-    save(bot) {
-        const bots = this.getAll();
-        const idx = bots.findIndex(b => b.id === bot.id);
-        if (idx >= 0) { bots[idx] = { ...bots[idx], ...bot, updatedAt: Date.now() }; }
-        else { bots.unshift({ ...bot, id: bot.id || crypto.randomUUID(), createdAt: Date.now(), updatedAt: Date.now() }); }
-        localStorage.setItem(this._key, JSON.stringify(bots));
-        return bot;
+    async save(bot) {
+        if (!auth.currentUser) throw new Error('Not authenticated');
+        const id = bot.id || crypto.randomUUID();
+        const docRef = doc(db, 'bots', id);
+
+        // Ensure required fields
+        const data = {
+            ...bot,
+            id,
+            userId: auth.currentUser.uid,
+            updatedAt: Date.now(),
+            createdAt: bot.createdAt || Date.now(),
+            messageCount: bot.messageCount || 0,
+            active: bot.active !== undefined ? bot.active : true,
+            channels: bot.channels || {}
+        };
+
+        await setDoc(docRef, data, { merge: true });
+        return data;
     },
 
-    delete(id) {
-        const bots = this.getAll().filter(b => b.id !== id);
-        localStorage.setItem(this._key, JSON.stringify(bots));
+    async delete(id) {
+        if (!auth.currentUser) return;
+        await deleteDoc(doc(db, 'bots', id));
     },
 
-    stats() {
-        const bots = this.getAll();
-        const channels = bots.reduce((n, b) => n + Object.keys(b.channels || {}).filter(c => (b.channels || {})[c]?.connected).length, 0);
+    async stats() {
+        const bots = await this.getAll();
+        const channels = bots.reduce((n, b) => n + Object.keys(b.channels || {}).filter(c => b.channels[c]?.connected).length, 0);
         const msgs = bots.reduce((n, b) => n + (b.messageCount || 0), 0);
         return { bots: bots.length, channels, messages: msgs };
+    }
+};
+
+// ─── Firebase Reliability Test Suite ──────────────────────────
+const SharpDBTest = {
+    async runAll() {
+        console.log('🚀 Starting Sharp AI Database Integration Tests...');
+        try {
+            if (!auth.currentUser) throw new Error('Not authenticated. Please log in first.');
+
+            // 1. User Sync Test
+            console.log('⏳ Testing UserStore.sync...');
+            const profile = await UserStore.sync(auth.currentUser);
+            if (!profile.uid) throw new Error('User sync failed');
+            console.log('✅ UserStore: PASS');
+
+            // 2. Bot Persistence Test
+            console.log('⏳ Testing BotStore.save...');
+            const testBot = await BotStore.save({
+                name: '🔥 Test Bot ' + Date.now(),
+                emoji: '🤖',
+                systemPrompt: 'Test connectivity',
+                isTest: true
+            });
+            console.log('✅ BotStore Save: PASS');
+
+            // 3. Bot Retrieval Test
+            console.log('⏳ Testing BotStore.getAll...');
+            const all = await BotStore.getAll();
+            if (!all.find(b => b.id === testBot.id)) throw new Error('Bot retrieval failed');
+            console.log('✅ BotStore Retrieval: PASS');
+
+            // 4. Cleanup
+            console.log('⏳ Cleaning up...');
+            await BotStore.delete(testBot.id);
+            console.log('✅ Cleanup: PASS');
+
+            console.log('🎉 ALL DATABASE TESTS PASSED! Sharp AI DB is sync-ready.');
+            return true;
+        } catch (e) {
+            console.error('❌ DATABASE TEST FAILED:', e.message);
+            return false;
+        }
+    }
+};
+
+// ─── User Store (Firestore) ──────────────────────────────────
+const UserStore = {
+    async sync(user) {
+        if (!user) return null;
+        const userRef = doc(db, 'users', user.uid);
+        const snap = await getDoc(userRef);
+
+        const userData = {
+            uid: user.uid,
+            email: user.email || '',
+            name: user.displayName || (user.email ? user.email.split('@')[0] : (user.phoneNumber || 'User')),
+            photoURL: user.photoURL || '',
+            lastLogin: Date.now(),
+            updatedAt: Date.now()
+        };
+
+        if (!snap.exists()) {
+            // New user defaults
+            userData.createdAt = Date.now();
+            userData.credits = 100;
+            userData.plan = 'free';
+            userData.bio = '';
+            await setDoc(userRef, userData);
+        } else {
+            // Update existing
+            await setDoc(userRef, {
+                lastLogin: userData.lastLogin,
+                updatedAt: userData.updatedAt
+            }, { merge: true });
+        }
+        return snap.exists() ? { ...snap.data(), ...userData } : userData;
+    },
+
+    async get(uid) {
+        const snap = await getDoc(doc(db, 'users', uid));
+        return snap.exists() ? snap.data() : null;
     }
 };
 
@@ -56,7 +174,6 @@ const MARKETPLACE_TEMPLATES = [
     { id: 't10', name: 'Crypto Analyst', emoji: '📊', category: 'finance', model: 'Gemini 1.5', installs: 6700, price: 0, description: 'Explains crypto concepts, analyzes market trends.', system: 'You are a knowledgeable cryptocurrency analyst. Explain blockchain concepts, analyze market trends based on historical data, and discuss different cryptocurrencies objectively. Always remind users that this is not financial advice.' },
 ];
 
-// ─── Nav Generation ─────────────────────────────────────────
 function getActivePage() {
     const p = window.location.pathname.split('/').pop() || 'index.html';
     return p;
@@ -64,13 +181,70 @@ function getActivePage() {
 
 function renderNav() {
     const active = getActivePage();
-    const isIndex = !active || active === 'index.html';
+    const user = auth.currentUser;
+
     const links = [
         { href: 'dashboard.html', label: 'Dashboard' },
         { href: 'pricing.html', label: 'Pricing' },
         { href: 'marketplace.html', label: 'Marketplace' },
-        { href: 'index.html', label: '🪙 $Snappy' },
+        { href: 'index.html', label: '$Sharp', isPill: true },
     ];
+
+    const navLinksHtml = links.map(l => {
+        const isActive = active === l.href || (l.href === 'dashboard.html' && (active === '' || active === 'platform.html' || active === 'builder.html' || active === 'channels.html'));
+        if (l.isPill) {
+            return `<a href="${l.href}" class="nav-pill${isActive ? ' active' : ''}"><span class="nav-dot"></span>${l.label}</a>`;
+        }
+        return `<a href="${l.href}" class="nav-link${isActive ? ' active' : ''}">${l.label}</a>`;
+    }).join('');
+
+    let navActionsHtml = '';
+    if (user) {
+        const name = user.displayName || user.email.split('@')[0];
+        const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        navActionsHtml = `
+            <div class="nav-actions-group">
+                <div class="nav-user-profile" id="navUserProfile">
+                    <div class="nav-user-chip" onclick="toggleProfileDropdown()">
+                        <div class="nav-user-avatar">${initials}</div>
+                        <span class="nav-user-name">${name.split(' ')[0]}</span>
+                        <svg class="nav-user-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="nav-profile-dropdown" id="navProfileDropdown">
+                        <div class="dropdown-header">
+                            <div class="dropdown-user-info">
+                                <div class="dropdown-user-name">${name}</div>
+                                <div class="dropdown-user-email">${user.email}</div>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="dashboard.html?tab=profile" class="dropdown-item">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            Profile Settings
+                        </a>
+                        <a href="dashboard.html" class="dropdown-item">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                            My Bots
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item logout" onclick="handleLogout()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+                <a href="builder.html" class="nav-btn nav-btn-primary nav-hide-mobile">Start Building →</a>
+            </div>
+        `;
+    } else {
+        navActionsHtml = `
+            <a href="login.html" class="nav-btn nav-btn-ghost">Login</a>
+            <a href="builder.html" class="nav-btn nav-btn-primary">Start Building →</a>
+        `;
+    }
+
     return `
     <nav class="platform-nav" id="platNav">
       <div class="nav-brand">
@@ -84,15 +258,14 @@ function renderNav() {
               </linearGradient></defs>
             </svg>
           </div>
-          <span class="nav-logo-text">Sidd<span class="nav-logo-accent">-AI</span></span>
+          <span class="nav-logo-text">Sharp<span class="nav-logo-accent"> AI</span></span>
         </a>
       </div>
       <div class="nav-links" id="navLinks">
-        ${links.map(l => `<a href="${l.href}" class="nav-link${active === l.href || (l.href === 'dashboard.html' && active === '') ? ' active' : ''}">${l.label}</a>`).join('')}
+        ${navLinksHtml}
       </div>
       <div class="nav-actions">
-        <a href="login.html" class="nav-btn nav-btn-ghost">Login</a>
-        <a href="builder.html" class="nav-btn nav-btn-primary">Start Building →</a>
+        ${navActionsHtml}
         <button class="nav-hamburger" onclick="toggleMobileNav()" id="hamburger">
           <span></span><span></span><span></span>
         </button>
@@ -102,11 +275,46 @@ function renderNav() {
 
 function injectNav() {
     const el = document.getElementById('platformNav');
-    if (el) el.innerHTML = renderNav();
+    if (!el) return;
+
+    el.innerHTML = renderNav();
+
+    // Premium scroll effect
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('platNav');
+        if (!nav) return;
+        if (window.scrollY > 20) {
+            nav.style.background = 'rgba(1, 1, 3, 0.98)';
+            nav.style.height = '64px';
+            nav.style.borderBottomColor = 'rgba(250, 204, 21, 0.25)';
+        } else {
+            nav.style.background = 'rgba(1, 1, 3, 0.94)';
+            nav.style.height = '72px';
+            nav.style.borderBottomColor = 'rgba(250, 204, 21, 0.12)';
+        }
+    });
 }
 
 function toggleMobileNav() {
     document.getElementById('navLinks')?.classList.toggle('open');
+}
+
+function toggleProfileDropdown() {
+    const dd = document.getElementById('navProfileDropdown');
+    const chip = document.querySelector('.nav-user-chip');
+    if (dd) {
+        const isOpen = dd.classList.toggle('open');
+        chip?.classList.toggle('active', isOpen);
+    }
+}
+
+async function handleLogout() {
+    try {
+        await signOut(auth);
+        window.location.href = 'login.html';
+    } catch (e) {
+        showToast('Logout failed', 'error', '❌');
+    }
 }
 
 // ─── Toast (shared) ──────────────────────────────────────────
@@ -122,180 +330,81 @@ function showToast(msg, type = 'info', icon = 'ℹ️') {
     toast.className = `toast ${type}`;
     toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-msg">${msg}</span>`;
     container.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
     setTimeout(() => {
-        toast.classList.add('hiding');
-        setTimeout(() => toast.remove(), 280);
-    }, 3200);
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+    }, 4000);
 }
 
-// ─── Copy to clipboard ───────────────────────────────────────
-function copyToClipboard(text, label = 'Copied!') {
-    navigator.clipboard.writeText(text).then(() => {
-        showToast(label, 'success', '📋');
-    }).catch(() => {
-        showToast('Failed to copy', 'error', '❌');
-    });
+function copyToClipboard(text, msg = 'Copied!') {
+    navigator.clipboard.writeText(text).then(() => showToast(msg, 'success', '📋'));
 }
 
-// ─── Relative Time ───────────────────────────────────────────
-function relativeTime(ts) {
-    const diff = Date.now() - ts;
-    const m = Math.floor(diff / 60000);
-    if (m < 1) return 'just now';
-    if (m < 60) return `${m}m ago`;
-    const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h ago`;
-    return `${Math.floor(h / 24)}d ago`;
+function relativeTime(date) {
+    if (!date) return '...';
+    const now = Date.now();
+    const diff = now - new Date(date).getTime();
+    const sec = Math.floor(diff / 1000);
+    if (sec < 60) return 'Just now';
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min}m ago`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h ago`;
+    return new Date(date).toLocaleDateString();
 }
 
-// ─── Channel labels / icons ──────────────────────────────────
-const CHANNEL_META = {
-    telegram: { label: 'Telegram', icon: '✈️', color: '#229ED9' },
-    whatsapp: { label: 'WhatsApp', icon: '💬', color: '#25D366' },
-    discord: { label: 'Discord', icon: '🎮', color: '#5865F2' },
-    slack: { label: 'Slack', icon: '⚡', color: '#E01E5A' },
-    webchat: { label: 'WebChat', icon: '🌐', color: '#6366f1' },
-    signal: { label: 'Signal', icon: '🔒', color: '#3A76F0' },
-};
-
-// ─── Model options ───────────────────────────────────────────
-const MODELS = [
-    { name: 'GPT-4o', desc: 'OpenAI · Best quality', grad: 'linear-gradient(135deg,#10b981,#059669)', badge: 'PRO' },
-    { name: 'Claude 3.5', desc: 'Anthropic · Long context', grad: 'linear-gradient(135deg,#f59e0b,#d97706)', badge: 'PRO' },
-    { name: 'Gemini 1.5', desc: 'Google · Multimodal', grad: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', badge: 'PRO' },
-    { name: 'Llama 3', desc: 'Meta · Fast & free', grad: 'linear-gradient(135deg,#ec4899,#8b5cf6)', badge: 'FREE' },
-    { name: 'Mixtral', desc: 'Mistral · Efficient', grad: 'linear-gradient(135deg,#6366f1,#4f46e5)', badge: 'FREE' },
+const MODEL_OPTIONS = [
+    { id: 'gpt-4o', name: 'GPT-4o (Omni)', provider: 'OpenAI', icon: '⚡' },
+    { id: 'claude-3-5', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', icon: '🎭' },
+    { id: 'gemini-1-5', name: 'Gemini 1.5 Pro', provider: 'Google', icon: '♊' },
+    { id: 'llama-3', name: 'Llama 3 (70B)', provider: 'Groq', icon: '🦙' }
 ];
 
-// ─── 3D Sky Canvas (red moon + shooting stars + parallax) ───
-function initStarCanvas(canvasId = 'space-canvas') {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let W, H;
-    let points = [];
-    const numPoints = 1200;
-    const radius = 220;
-    const fov = 400;
-    let angleX = 0;
-    let angleY = 0;
-    let targetAngleX = 0;
-    let targetAngleY = 0;
-
-    class Point3D {
-        constructor(i) {
-            // Fibonacci Sphere Algorithm for beautiful even distribution
-            const phi = Math.acos(-1 + (2 * i) / numPoints);
-            const theta = Math.sqrt(numPoints * Math.PI) * phi;
-
-            this.x = radius * Math.cos(theta) * Math.sin(phi);
-            this.y = radius * Math.sin(theta) * Math.sin(phi);
-            this.z = radius * Math.cos(phi);
-        }
-
-        rotate(ax, ay) {
-            // Rotate around Y axis
-            let cosY = Math.cos(ay), sinY = Math.sin(ay);
-            let x1 = this.x * cosY - this.z * sinY;
-            let z1 = this.x * sinY + this.z * cosY;
-
-            // Rotate around X axis
-            let cosX = Math.cos(ax), sinX = Math.sin(ax);
-            let y1 = this.y * cosX - z1 * sinX;
-            let z2 = this.y * sinX + z1 * cosX;
-
-            this.x = x1;
-            this.y = y1;
-            this.z = z2;
-        }
-
-        draw() {
-            // 3D to 2D Projection
-            const scale = fov / (fov + this.z);
-            const x2d = (this.x * scale) + W / 2;
-            const y2d = (this.y * scale) + H / 2;
-
-            // Depth styling — significantly boosted for maximum visibility
-            const opacity = Math.max(0.25, (fov - this.z) / (fov * 1.2));
-            const size = Math.max(1.0, scale * 2.4);
-
-            // Solaris Colors: Solaris Gold (front) or Nova Crimson (back)
-            const hue = this.z > -100 ? 45 : 340;
-            const lum = this.z > 0 ? 80 : 60;
-            ctx.fillStyle = `hsla(${hue}, 95%, ${lum}%, ${opacity})`;
-
-            ctx.beginPath();
-            ctx.arc(x2d, y2d, size, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Premium Glow for foreground points
-            if (this.z > 150) {
-                ctx.shadowBlur = 12;
-                ctx.shadowColor = `hsla(${hue}, 90%, 70%, ${opacity * 0.6})`;
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-        }
-    }
-
-    function resize() {
-        W = canvas.width = window.innerWidth;
-        H = canvas.height = window.innerHeight;
-    }
-
-    function createPoints() {
-        points = [];
-        for (let i = 0; i < numPoints; i++) {
-            points.push(new Point3D(i));
-        }
-    }
-
-    function animate() {
-        ctx.clearRect(0, 0, W, H);
-
-        // Background Glow
-        const grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, radius * 1.8);
-        grad.addColorStop(0, 'rgba(250, 204, 21, 0.04)');
-        grad.addColorStop(1, 'transparent');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, W, H);
-
-        // Smoothly interpolate rotation
-        angleX += (targetAngleX - angleX) * 0.05;
-        angleY += (targetAngleY - angleY) * 0.05;
-
-        // Constant slow drift
-        const autoX = 0.001;
-        const autoY = 0.0015;
-
-        // Sort points by Z to handle simple occlusion
-        points.sort((a, b) => b.z - a.z);
-
-        for (let p of points) {
-            p.rotate(autoX + angleX, autoY + angleY);
-            p.draw();
-        }
-
-        requestAnimationFrame(animate);
-    }
-
-    window.addEventListener('resize', () => {
-        resize();
-        createPoints();
-    });
-
-    window.addEventListener('mousemove', (e) => {
-        targetAngleY = (e.clientX - W / 2) * 0.00002;
-        targetAngleX = (e.clientY - H / 2) * 0.00002;
-    });
-
-    resize();
-    createPoints();
-    animate();
+function getChannelMeta(id) {
+    const metas = {
+        'web': { name: 'Web Widget', icon: '🌐', color: '#6366f1' },
+        'whatsapp': { name: 'WhatsApp', icon: '💬', color: '#25d366' },
+        'telegram': { name: 'Telegram', icon: '✈️', color: '#0088cc' },
+        'discord': { name: 'Discord', icon: '👾', color: '#5865f2' }
+    };
+    return metas[id] || { name: id, icon: '🔌', color: '#94a3b8' };
 }
 
-// ─── Auto init on load ───────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+// Global Exports
+window.BotStore = BotStore;
+window.MARKETPLACE_TEMPLATES = MARKETPLACE_TEMPLATES;
+window.renderNav = renderNav;
+window.injectNav = injectNav;
+window.toggleMobileNav = toggleMobileNav;
+window.toggleProfileDropdown = toggleProfileDropdown;
+window.handleLogout = handleLogout;
+window.showToast = showToast;
+window.copyToClipboard = copyToClipboard;
+window.relativeTime = relativeTime;
+window.getChannelMeta = getChannelMeta;
+window.BotStore = BotStore;
+window.UserStore = UserStore;
+window.SharpDBTest = SharpDBTest;
+
+// Init
+injectNav();
+
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        await UserStore.sync(user);
+    }
     injectNav();
-    initStarCanvas();
+});
+
+// Close dropdown on click outside
+document.addEventListener('click', (e) => {
+    const dd = document.getElementById('navProfileDropdown');
+    const chip = document.querySelector('.nav-user-chip');
+    if (dd && dd.classList.contains('open')) {
+        if (!dd.contains(e.target) && !chip?.contains(e.target)) {
+            dd.classList.remove('open');
+            chip?.classList.remove('active');
+        }
+    }
 });

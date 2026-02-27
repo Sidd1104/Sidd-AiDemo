@@ -4,11 +4,180 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Channels — Sidd-AI</title>
+    <title>Channels — Sharp AI</title>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" />
+    <style>
+        /* ── Modern Scanner FX ── */
+        .qr-wrapper {
+            position: relative;
+            margin: 20px auto;
+            width: 270px;
+            height: 270px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .qr-scanner-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .scan-line {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--purple-l), transparent);
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: scanMove 3s linear infinite;
+            box-shadow: 0 0 15px var(--purple-l);
+        }
+
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--purple-l);
+            z-index: 3;
+        }
+
+        .corner-tl {
+            top: 20px;
+            left: 20px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .corner-tr {
+            top: 20px;
+            right: 20px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .corner-bl {
+            bottom: 20px;
+            left: 20px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .corner-br {
+            bottom: 20px;
+            right: 20px;
+            border-left: none;
+            border-top: none;
+        }
+
+        @keyframes scanMove {
+            0% {
+                top: 0%;
+                opacity: 0;
+            }
+
+            5% {
+                opacity: 1;
+            }
+
+            95% {
+                opacity: 1;
+            }
+
+            100% {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+
+        .qr-image-fit {
+            width: 220px;
+            height: 220px;
+            background: #fff;
+            padding: 8px;
+            border-radius: 12px;
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .connected-state .qr-image-fit {
+            transform: scale(0) rotate(180deg);
+            opacity: 0;
+        }
+
+        .success-portal {
+            position: absolute;
+            font-size: 80px;
+            transform: scale(0);
+            transition: 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .connected-state .success-portal {
+            transform: scale(1);
+        }
+
+        .redirect-notice {
+            background: rgba(124, 58, 237, 0.1);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 13px;
+            display: none;
+            animation: slideUp 0.4s ease;
+        }
+
+        .pairing-code-display {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .code-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--purple-l);
+            color: #fff;
+            font-size: 24px;
+            font-weight: 800;
+            padding: 15px 5px;
+            border-radius: 12px;
+            font-family: var(--font-title);
+            text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.2);
+        }
+
+        .phone-input-wrap {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .phone-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #fff;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .phone-input:focus {
+            border-color: var(--purple-l);
+        }
+    </style>
     <link rel="stylesheet" href="platform.css" />
-</head>
 
 <body>
     <canvas id="space-canvas"></canvas>
@@ -37,6 +206,103 @@
         <div class="channels-grid" id="channelsGrid"></div>
     </div>
 
+    <!-- WhatsApp QR Modal (Modern Scanner Edition) -->
+    <div class="modal-overlay" id="waModal" onclick="if(event.target===this)closeWA()">
+        <div class="modal-box" style="max-width:480px; text-align:center; padding: 40px">
+            <div class="modal-header" style="margin-bottom: 24px">
+                <div style="display:flex;align-items:center;gap:12px">
+                    <span style="font-size:28px">💬</span>
+                    <h3 style="margin:0; font-size: 24px">Link WhatsApp Engine</h3>
+                </div>
+                <button class="modal-close" onclick="closeWA()">✕</button>
+            </div>
+
+            <p id="waMainDesc" style="color:var(--text-2); font-size:14px; line-height: 1.6">
+                Scan this "Universal Engine QR" using your <strong>WhatsApp App → Linked Devices</strong>
+                to initialize your AI agent on this number.
+            </p>
+
+            <div id="waMethodToggle" style="margin-bottom: 20px;">
+                <button class="cta-btn cta-ghost" id="btnPairMobile" onclick="toggleWAMethod('pair')"
+                    style="padding: 6px 12px; font-size: 11px">Link with Phone Number instead</button>
+                <button class="cta-btn cta-ghost" id="btnPairQr" onclick="toggleWAMethod('qr')"
+                    style="padding: 6px 12px; font-size: 11px; display: none">Back to QR Code</button>
+            </div>
+
+            <div class="qr-wrapper" id="waQrWrapper">
+                <div class="qr-scanner-overlay">
+                    <div class="scan-line"></div>
+                    <div class="corner corner-tl"></div>
+                    <div class="corner corner-tr"></div>
+                    <div class="corner corner-bl"></div>
+                    <div class="corner corner-br"></div>
+                </div>
+
+                <div id="waQrContainer" class="qr-image-fit">
+                    <div class="typing-dots"><span></span><span></span><span></span></div>
+                </div>
+
+                <div id="waPairingDisplay" class="pairing-code-display">
+                    <div class="code-box">—</div>
+                    <div class="code-box">—</div>
+                    <div class="code-box">—</div>
+                    <div class="code-box">—</div>
+                    <div class="code-box">—</div>
+                    <div class="code-box">—</div>
+                    <div class="code-box">—</div>
+                    <div class="code-box">—</div>
+                </div>
+
+                <div class="success-portal">✅</div>
+            </div>
+
+            <div id="waPhoneInputWrap" class="phone-input-wrap" style="display: none;">
+                <input type="text" id="waPhoneNumber" class="phone-input" placeholder="+1234567890">
+                <button class="cta-btn cta-primary" onclick="requestPairCode()">Get Code</button>
+            </div>
+
+            <div id="waStatusBox"
+                style="background:rgba(255,255,255,0.03); padding:16px; border-radius:12px; border:1px solid rgba(255,255,255,0.05)">
+                <p id="waStatusText" style="color:var(--text-2); font-size:13px; font-weight: 600; margin:0">
+                    Initializing secure session...</p>
+                <div id="waRedirectMsg" class="redirect-notice">
+                    🚀 <strong>Success!</strong> Redirecting to your bot messenger...
+                </div>
+            </div>
+
+            <button class="cta-btn cta-ghost" onclick="closeWA()" style="width:100%; margin-top: 24px">Close
+                Window</button>
+        </div>
+    </div>
+
+    <!-- WhatsApp Share Modal -->
+    <div class="modal-overlay" id="waShareModal" onclick="if(event.target===this)closeWAShare()">
+        <div class="modal-box" style="max-width:400px; text-align:center; padding: 40px">
+            <div class="modal-header" style="margin-bottom: 24px; justify-content: center;">
+                <div style="display:flex;align-items:center;gap:12px">
+                    <span style="font-size:28px">📲</span>
+                    <h3 style="margin:0; font-size: 24px">Scan to Chat</h3>
+                </div>
+                <button class="modal-close" onclick="closeWAShare()" style="position:absolute; right:20px;">✕</button>
+            </div>
+
+            <p style="color:var(--text-2); font-size:14px; line-height: 1.6; margin-bottom: 20px;">
+                Scan this code with any smartphone camera to open a direct WhatsApp chat with your connected bot!
+            </p>
+
+            <div style="background:#fff; padding:15px; border-radius:16px; display:inline-block; margin-bottom:20px;">
+                <img id="waShareQrImg" src="" alt="WhatsApp QR Code"
+                    style="width:200px; height:200px; display:block;" />
+            </div>
+
+            <div style="display:flex; gap:10px; flex-direction:column;">
+                <button class="cta-btn cta-primary" onclick="openWaShareLink()" style="width:100%">↗️ Open Link in
+                    Browser</button>
+                <button class="cta-btn cta-ghost" onclick="closeWAShare()" style="width:100%">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Embed code modal -->
     <div class="modal-overlay" id="embedModal" onclick="if(event.target===this)closeEmbed()">
         <div class="modal-box" style="max-width:600px">
@@ -55,22 +321,15 @@
     </div>
 
     <div id="toastContainer" class="toast-container"></div>
-    <script src="platform.js"></script>
-    <script>
+    <script type="module" src="platform.js"></script>
+    <script src="animation.js"></script>
+    <script type="module">
+        import { auth, db } from './firebase.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
         const params = new URLSearchParams(window.location.search);
         const botId = params.get('id');
-        let bot = botId ? BotStore.get(botId) : null;
-
-        function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-
-        // Show bot strip
-        if (bot) {
-            const strip = document.getElementById('botStrip'); strip.style.display = 'flex';
-            document.getElementById('botStripEmoji').textContent = bot.emoji || '🤖';
-            document.getElementById('botStripName').textContent = bot.name;
-            document.getElementById('botStripModel').textContent = bot.model;
-            document.getElementById('botStripEdit').href = 'builder.html?id=' + bot.id;
-        }
+        let bot = null;
 
         const CHANNELS_DEF = [
             {
@@ -98,7 +357,9 @@
             },
             {
                 id: 'whatsapp', icon: '💬', name: 'WhatsApp', color: '#25D366',
-                desc: 'WhatsApp Business API integration. Requires Meta Developer account.', soon: true
+                desc: 'Scan a QR code to link your own WhatsApp account. The bot will automatically reply to any private messages you receive.',
+                fields: [],
+                action: 'connectWhatsApp'
             },
             {
                 id: 'signal', icon: '🔒', name: 'Signal', color: '#3A76F0',
@@ -106,10 +367,42 @@
             },
         ];
 
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) return window.location.href = 'login.html';
+
+            if (botId) {
+                bot = await BotStore.get(botId);
+                if (bot) {
+                    showBotStrip();
+                    renderChannels();
+                } else {
+                    showToast('Bot not found', 'error', '⚠️');
+                }
+            } else {
+                renderChannels();
+            }
+        });
+
+        function showBotStrip() {
+            if (!bot) return;
+            const strip = document.getElementById('botStrip');
+            if (strip) {
+                strip.style.display = 'flex';
+                document.getElementById('botStripEmoji').textContent = bot.emoji || '🤖';
+                document.getElementById('botStripName').textContent = bot.name || 'Bot';
+                document.getElementById('botStripModel').textContent = bot.model || 'Unknown Model';
+                document.getElementById('botStripEdit').href = 'builder.html?id=' + bot.id;
+            }
+        }
+
+        function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
         function isConnected(ch) { return !!(bot?.channels?.[ch]?.connected); }
 
         function renderChannels() {
-            document.getElementById('channelsGrid').innerHTML = CHANNELS_DEF.map(ch => {
+            const grid = document.getElementById('channelsGrid');
+            if (!grid) return;
+            grid.innerHTML = CHANNELS_DEF.map(ch => {
                 const conn = isConnected(ch.id);
                 const statusHtml = ch.soon
                     ? '<span class="channel-status ch-soon">Coming Soon</span>'
@@ -125,9 +418,10 @@
 
                 const actionBtns = ch.soon ? '' : ch.embedOnly
                     ? `<button class="cta-btn cta-primary" onclick="showEmbed()" style="width:100%;margin-top:10px">🌐 Get Embed Code</button>`
-                    : `<div style="display:flex;gap:8px;margin-top:10px">
-              <button class="cta-btn cta-primary" onclick="${ch.action}('${ch.id}')" style="flex:1">${conn ? '🔄 Reconnect' : '🔌 Connect'}</button>
-              ${conn ? `<button class="cta-btn cta-danger" onclick="disconnectCh('${ch.id}')" style="flex:1;padding:10px">Disconnect</button>` : ''}
+                    : `<div style="display:flex; flex-direction:column; gap:10px; margin-top:15px">
+              ${conn && ch.id === 'whatsapp' ? `<button class="cta-btn cta-primary" onclick="showWAShareQR()" style="width:100%">📲 Share Bot</button>` : ''}
+              <button class="cta-btn cta-primary" onclick="${ch.action}('${ch.id}')" style="width:100%">${conn ? '🔄 Reconnect Unit' : '🔌 Connect Now'}</button>
+              ${conn ? `<button class="cta-btn cta-danger" onclick="disconnectCh('${ch.id}')" style="width:100%; padding:10px; background:rgba(239, 68, 68, 0.1); border-color:rgba(239, 68, 68, 0.2)">Disconnect Channel</button>` : ''}
             </div>`;
 
                 return `<div class="channel-card" style="${conn ? 'border-color:' + ch.color + ';box-shadow:0 0 20px ' + ch.color + '22' : ''}">
@@ -143,56 +437,242 @@
             }).join('');
         }
 
-        function saveChannel(chId, data) {
+        async function saveChannel(chId, data) {
             if (!bot) { showToast('No bot selected', 'error', '⚠️'); return false; }
             bot.channels = bot.channels || {};
             bot.channels[chId] = { ...data, connected: true };
-            BotStore.save(bot);
+            await BotStore.save(bot);
             renderChannels();
             return true;
         }
 
-        function connectTelegram(chId) {
+        window.connectTelegram = async function (chId) {
             const val = document.getElementById('tg_token')?.value.trim();
             if (!val) { showToast('Enter your Bot Token first', 'error', '⚠️'); return; }
             if (!val.match(/^\d+:.{20,}$/)) { showToast('Invalid bot token format', 'error', '⚠️'); return; }
-            saveChannel(chId, { tg_token: val });
+            await saveChannel(chId, { tg_token: val });
             showToast('Telegram connected! ✈️', 'success', '✈️');
         }
-        function connectDiscord(chId) {
+        window.connectDiscord = async function (chId) {
             const val = document.getElementById('dc_webhook')?.value.trim();
             if (!val || !val.startsWith('https://discord.com/api/webhooks/')) { showToast('Invalid Discord webhook URL', 'error', '⚠️'); return; }
-            saveChannel(chId, { dc_webhook: val });
+            await saveChannel(chId, { dc_webhook: val });
             showToast('Discord connected! 🎮', 'success', '🎮');
         }
-        function connectSlack(chId) {
+        window.connectSlack = async function (chId) {
             const val = document.getElementById('sl_token')?.value.trim();
             if (!val) { showToast('Enter your Slack OAuth token', 'error', '⚠️'); return; }
-            saveChannel(chId, { sl_token: val });
+            await saveChannel(chId, { sl_token: val });
             showToast('Slack connected! ⚡', 'success', '⚡');
         }
-        function disconnectCh(chId) {
+        const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3001/api' : '/api';
+        let waPollInterval = null;
+        let waInitTimeout = null;
+
+        window.connectWhatsApp = async function () {
+            const modal = document.getElementById('waModal');
+            modal.classList.add('open');
+            const statusText = document.getElementById('waStatusText');
+            const qrContainer = document.getElementById('waQrContainer');
+
+            statusText.textContent = "Initializing WhatsApp Engine...";
+            qrContainer.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+
+            try {
+                await fetch(`${API_BASE}/whatsapp/connect`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ botId })
+                });
+                startWAPolling();
+
+                // Advanced timeout check (Senior Dev style)
+                if (waInitTimeout) clearTimeout(waInitTimeout);
+                waInitTimeout = setTimeout(() => {
+                    const status = document.getElementById('waStatusText').textContent;
+                    if (status.includes("Initializing")) {
+                        document.getElementById('waStatusText').textContent = "⚠️ Server taking a bit long... attempting to force refresh.";
+                        window.connectWhatsApp(); // Auto-retry once
+                    }
+                }, 15000);
+
+            } catch (e) {
+                showToast('Failed to start WhatsApp', 'error', '⚠️');
+                statusText.textContent = "Error: Could not reach server.";
+            }
+        }
+
+        window.toggleWAMethod = function (method) {
+            const isPair = method === 'pair';
+            document.getElementById('waQrContainer').style.display = isPair ? 'none' : 'block';
+            document.getElementById('waPairingDisplay').style.display = isPair ? 'grid' : 'none';
+            document.getElementById('waPhoneInputWrap').style.display = isPair ? 'flex' : 'none';
+            document.getElementById('btnPairMobile').style.display = isPair ? 'none' : 'block';
+            document.getElementById('btnPairQr').style.display = isPair ? 'block' : 'none';
+            document.getElementById('waMainDesc').innerHTML = isPair
+                ? 'Enter your mobile number to receive an 8-character pairing code. Enter this code in <strong>WhatsApp → Linked Devices → Link with Phone Number</strong>.'
+                : 'Scan this "Universal Engine QR" using your <strong>WhatsApp App → Linked Devices</strong> to initialize your AI agent on this number.';
+        }
+
+        window.requestPairCode = async function () {
+            const num = document.getElementById('waPhoneNumber').value.trim();
+            if (!num) { showToast('Please enter your phone number', 'error', '⚠️'); return; }
+
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/whatsapp/pair`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ number: num })
+                });
+                const data = await res.json();
+                if (data.code) {
+                    const boxes = document.querySelectorAll('.code-box');
+                    data.code.split('').forEach((char, i) => {
+                        if (boxes[i]) boxes[i].textContent = char;
+                    });
+                    showToast('Pairing Code Generated!', 'success', '🔑');
+                } else {
+                    throw new Error(data.error || 'Failed to get code');
+                }
+            } catch (e) {
+                showToast(e.message, 'error', '❌');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function startWAPolling() {
+            if (waPollInterval) clearInterval(waPollInterval);
+            let failCount = 0;
+
+            waPollInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`${API_BASE}/whatsapp/status`);
+                    const { status, number, pairingCode } = await res.json();
+                    const statusText = document.getElementById('waStatusText');
+                    const qrContainer = document.getElementById('waQrContainer');
+
+                    // If we have a code from backend (e.g. from a previous attempt)
+                    if (pairingCode && document.getElementById('waPairingDisplay').style.display === 'grid') {
+                        const boxes = document.querySelectorAll('.code-box');
+                        pairingCode.split('').forEach((char, i) => {
+                            if (boxes[i]) boxes[i].textContent = char;
+                        });
+                    }
+
+                    if (status === 'qr') {
+                        statusText.innerHTML = `<span style="color:var(--purple-l)">●</span> Ready to connect...`;
+                        const qrRes = await fetch(`${API_BASE}/whatsapp/qr`);
+                        const { qr } = await qrRes.json();
+                        if (qr && !qrContainer.querySelector('img')) {
+                            qrContainer.innerHTML = `<img src="${qr}" style="width:100%;height:100%"/>`;
+                            if (waInitTimeout) clearTimeout(waInitTimeout);
+                        }
+                    } else if (status === 'connected') {
+                        statusText.style.display = 'none';
+                        document.getElementById('waQrWrapper').classList.add('connected-state');
+                        document.getElementById('waRedirectMsg').style.display = 'block';
+
+                        showToast('WhatsApp Engine Linked!', 'success', '💬');
+                        clearInterval(waPollInterval);
+                        if (waInitTimeout) clearTimeout(waInitTimeout);
+
+                        // Save channel state
+                        await saveChannel('whatsapp', { connected: true, number });
+
+                        // Smooth Delay redirect to WhatsApp Messenger (Senior Dev touch)
+                        setTimeout(() => {
+                            if (number) {
+                                window.open(`https://wa.me/${number}`, '_blank');
+                            }
+                            setTimeout(closeWA, 500);
+                        }, 2500);
+
+                    } else if (status === 'loading') {
+                        statusText.innerHTML = `<span style="color:var(--gold)">●</span> Booting Puppeteer Instance...`;
+                    }
+                } catch (e) {
+                    console.error('WA Polling error', e);
+                    failCount++;
+                    if (failCount > 10) {
+                        clearInterval(waPollInterval);
+                        document.getElementById('waStatusText').textContent = "Connection lost. Please try again.";
+                    }
+                }
+            }, 1000); // Poll faster (1s) for smoother experience
+        }
+
+        window.closeWA = function () {
+            document.getElementById('waModal').classList.remove('open');
+            if (waPollInterval) clearInterval(waPollInterval);
+            if (waInitTimeout) clearTimeout(waInitTimeout);
+        }
+
+        window.disconnectCh = async function (chId) {
             if (!bot) return;
-            bot.channels = bot.channels || {}; bot.channels[chId] = { connected: false };
-            BotStore.save(bot); renderChannels();
+            if (chId === 'whatsapp') {
+                await fetch(`${API_BASE}/whatsapp/disconnect`, { method: 'POST' });
+            }
+            bot.channels = bot.channels || {};
+            bot.channels[chId] = { connected: false };
+            await BotStore.save(bot);
+            renderChannels();
             showToast('Channel disconnected', 'info', '🔌');
         }
 
-        function showEmbed() {
+        window.showEmbed = function () {
             const id = bot?.id || 'demo';
             const name = bot?.name || 'My Bot';
-            const code = `<script src="https://sidd-ai.io/embed.js"
+            const code = `<script src="https://Sharp AI.io/embed.js"
   data-bot-id="${id}"
   data-bot-name="${name}"
   data-primary-color="#7c3aed"
   data-position="bottom-right">
 <\/script>`;
-            document.getElementById('embedCodeBox').textContent = code;
-            document.getElementById('embedModal').classList.add('open');
+            const box = document.getElementById('embedCodeBox');
+            if (box) box.textContent = code;
+            const modal = document.getElementById('embedModal');
+            if (modal) modal.classList.add('open');
         }
-        function closeEmbed() { document.getElementById('embedModal').classList.remove('open'); }
-        function copyEmbedCode() { copyToClipboard(document.getElementById('embedCodeBox').textContent, 'Embed code copied!'); }
+        window.closeEmbed = function () {
+            const modal = document.getElementById('embedModal');
+            if (modal) modal.classList.remove('open');
+        }
+        window.copyEmbedCode = function () {
+            const box = document.getElementById('embedCodeBox');
+            if (box) copyToClipboard(box.textContent, 'Embed code copied!');
+        }
 
+        window.showWAShareQR = function () {
+            if (!bot || !bot.channels || !bot.channels.whatsapp || !bot.channels.whatsapp.number) {
+                showToast('WhatsApp number not found. Please reconnect.', 'error', '⚠️');
+                return;
+            }
+            const number = bot.channels.whatsapp.number;
+            const waUrl = `https://wa.me/${number}?text=Hello`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(waUrl)}`;
+
+            document.getElementById('waShareQrImg').src = qrUrl;
+            document.getElementById('waShareQrImg').setAttribute('data-url', waUrl);
+            document.getElementById('waShareModal').classList.add('open');
+        };
+
+        window.closeWAShare = function () {
+            document.getElementById('waShareModal').classList.remove('open');
+        };
+
+        window.openWaShareLink = function () {
+            const url = document.getElementById('waShareQrImg').getAttribute('data-url');
+            if (url) window.open(url, '_blank');
+        };
+
+        // Initialize fallback if platform.js didn't render it
         renderChannels();
     </script>
 </body>

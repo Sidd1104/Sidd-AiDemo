@@ -4,114 +4,485 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard — Sidd-AI</title>
+    <title>Dashboard — Sharp AI</title>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="platform.css" />
     <style>
-        /* ── User profile chip ── */
-        .user-chip {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 100px;
-            padding: 6px 14px 6px 8px;
+        /* ── Dashboard Sections ── */
+        .dash-section {
+            display: none;
         }
 
-        .user-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: var(--grad);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            color: #fff;
-            flex-shrink: 0;
-            box-shadow: 0 0 10px rgba(250, 204, 21, 0.2);
+        .dash-section.active {
+            display: block;
         }
 
-        .user-chip-info {
-            display: flex;
-            flex-direction: column;
-            gap: 1px;
-        }
-
-        .user-chip-name {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text);
-            line-height: 1.2;
-        }
-
-        .user-chip-email {
-            font-size: 11px;
-            color: var(--text-2);
-            line-height: 1.2;
-        }
-
-        .logout-btn {
-            background: transparent;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-            border-radius: 8px;
-            padding: 7px 14px;
-            font-size: 13px;
-            font-weight: 600;
-            font-family: var(--font);
-            cursor: pointer;
-            transition: all .2s;
-        }
-
-        .logout-btn:hover {
-            background: rgba(239, 68, 68, 0.12);
-            border-color: rgba(239, 68, 68, 0.5);
-        }
-
-        .dash-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-
+        /* ── Header & Profile Grouping ── */
         .dash-header-right {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 20px;
             flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
-        /* ── Auth guard overlay ── */
-        #authGuard {
-            position: fixed;
-            inset: 0;
-            z-index: 200;
-            background: #010103;
+        .user-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 6px;
+            padding-right: 16px;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+        }
+
+        .user-chip {
+            background: none;
+            border: none;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--grad);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
         }
 
-        .auth-guard-spinner {
-            width: 36px;
-            height: 36px;
-            border: 3px solid rgba(124, 58, 237, 0.25);
-            border-top-color: #a78bfa;
+        .user-chip-name {
+            color: #fff;
+            font-weight: 700;
+            font-family: var(--font-title);
+            font-size: 14px;
+        }
+
+        .user-chip-email {
+            color: var(--text-3);
+            font-size: 11px;
+            display: block;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* ── Premium Form Inputs ── */
+        .profile-card .profile-input {
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            color: var(--text) !important;
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 15px;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-card .profile-input:focus {
+            border-color: var(--purple-l) !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+            outline: none;
+        }
+
+        .profile-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-2);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Bot Cards (Senior Dev Finish) ── */
+        .bots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 28px;
+        }
+
+        .bot-card {
+            cursor: pointer;
+            padding: 0 !important;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border) !important;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+            position: relative;
+        }
+
+        .bot-card:hover {
+            border-color: var(--purple) !important;
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5), 0 0 20px rgba(250, 204, 21, 0.1) !important;
+            transform: translateY(-5px);
+        }
+
+        .bot-card-top {
+            padding: 24px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .bot-emoji-frame {
+            width: 52px;
+            height: 52px;
+            background: var(--bg-3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .bot-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bot-name {
+            font-family: var(--font-title);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bot-model-tag {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bot-model-tag::before {
+            content: '';
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            animation: spin .7s linear infinite;
+            background: var(--purple);
         }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+        .bot-card-mid {
+            padding: 0 24px 20px;
+            flex: 1;
+        }
+
+        .bot-desc {
+            font-size: 14px;
+            color: var(--text-2);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        /* ── Platform Badges on Card ── */
+        .card-platforms {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .plat-mini {
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        /* ── Usage Chart (Simulated) ── */
+        .usage-mini-graph {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+            display: flex;
+            gap: 2px;
+        }
+
+        .usage-bar {
+            flex: 1;
+            height: 100%;
+            background: var(--purple);
+            opacity: 0.3;
+        }
+
+        .usage-bar.high {
+            opacity: 1;
+            background: var(--grad);
+        }
+
+        .bot-metadata {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 16px 24px;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-3);
+            font-weight: 500;
+        }
+
+        .bot-card-actions {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            display: flex;
+            gap: 6px;
+            opacity: 0;
+            transform: translateX(10px);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .bot-card:hover .bot-card-actions {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Account Settings Button */
+        .account-settings-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: var(--font-title);
+            color: var(--text-2);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .account-settings-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--purple);
+            color: var(--text);
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .account-settings-btn .settings-icon {
+            font-size: 16px;
+        }
+
+        /* Back button for account settings view */
+        .back-to-dashboard-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: var(--font-title);
+            color: var(--text-2);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 24px;
+        }
+
+        .back-to-dashboard-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--purple);
+            color: var(--text);
+        }
+
+        .mini-action {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .mini-action:hover {
+            background: var(--bg-3);
+            color: var(--text);
+            border-color: var(--purple);
+            transform: scale(1.1);
+        }
+
+        .status-pill {
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .status-pill.active {
+            background: rgba(74, 222, 128, 0.1);
+            color: var(--green);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.1);
+        }
+
+        .status-pill.deployed {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--purple-l);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
+        }
+
+        .status-pill.draft {
+            background: rgba(250, 204, 21, 0.1);
+            color: var(--gold);
+            border: 1px solid rgba(250, 204, 21, 0.2);
+        }
+
+        .status-pill.paused {
+            background: rgba(248, 113, 113, 0.1);
+            color: var(--red);
+            border: 1px solid rgba(248, 113, 113, 0.2);
+        }
+
+        /* ── Bot Detail Modal ── */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 24px;
+        }
+
+        .detail-main {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .detail-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .panel-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-2);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .prompt-preview {
+            background: var(--bg-3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            color: var(--purple-l);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .detail-stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .tiny-stat {
+            text-align: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .tiny-stat-val {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+            font-family: var(--font-title);
+        }
+
+        .tiny-stat-lbl {
+            font-size: 10px;
+            color: var(--text-3);
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-top: 2px;
         }
     </style>
 </head>
@@ -134,17 +505,21 @@
                 </p>
             </div>
             <div class="dash-header-right">
-                <!-- User profile chip injected here -->
-                <div class="user-chip" id="userChip" style="display:none">
-                    <div class="user-avatar" id="userAvatar">?</div>
-                    <div class="user-chip-info">
-                        <span class="user-chip-name" id="userName">—</span>
-                        <span class="user-chip-email" id="userEmail">—</span>
+                <div class="user-group" id="userGroup" style="display:none">
+                    <div class="user-chip" id="userChip">
+                        <div class="user-avatar" id="userAvatar">?</div>
+                        <div class="user-chip-info">
+                            <span class="user-chip-name" id="userName">—</span>
+                            <span class="user-chip-email" id="userEmail">—</span>
+                        </div>
                     </div>
+                    <button class="logout-btn" id="logoutBtn" onclick="handleLogout()">↩ Logout</button>
                 </div>
-                <button class="logout-btn" id="logoutBtn" style="display:none" onclick="handleLogout()">↩
-                    Logout</button>
-                <a href="builder.html" class="cta-btn cta-primary">+ Create New Bot</a>
+                <a href="builder.html" class="cta-btn cta-primary" style="padding: 10px 20px; font-size: 14px">+ Create
+                    New Bot</a>
+                <button class="account-settings-btn" onclick="switchDashTab('profile')">
+                    <span class="settings-icon">⚙️</span> Account Settings
+                </button>
             </div>
         </div>
 
@@ -164,176 +539,479 @@
             </div>
             <div class="glass-card stat-card">
                 <div class="stat-card-n text-gold" id="statFredo">0</div>
-                <div class="stat-card-l">$Snappy Earned</div>
+                <div class="stat-card-l">$Sharp Earned</div>
             </div>
         </div>
 
-        <!-- Filter/search bar -->
-        <div style="display:flex;gap:12px;margin-bottom:24px;align-items:center">
-            <input type="text" class="form-input" id="botSearch" placeholder="🔍 Search bots…" oninput="renderBots()"
-                style="max-width:280px" />
-            <select class="form-select" id="botFilter" onchange="renderBots()" style="max-width:180px">
-                <option value="all">All bots</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-            </select>
+        <div class="dash-tabs">
+            <div class="dash-tab active" data-tab="bots" onclick="switchDashTab('bots')">My Bots</div>
         </div>
 
-        <!-- Bots grid -->
-        <div class="bots-grid" id="botsGrid"></div>
+        <!-- Bots Section -->
+        <div id="sectionBots" class="dash-section active">
+            <!-- Filter/search bar -->
+            <div style="display:flex;gap:12px;margin-bottom:24px;align-items:center">
+                <input type="text" class="form-input" id="botSearch" placeholder="🔍 Search bots…"
+                    oninput="renderBots()" style="max-width:280px" />
+                <select class="form-select" id="botFilter" onchange="renderBots()" style="max-width:180px">
+                    <option value="all">All bots</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+
+            <!-- Bots grid -->
+            <div class="bots-grid" id="botsGrid"></div>
+        </div>
+
+        <!-- Profile Section (shown via Account Settings button) -->
+        <div id="sectionProfile" class="dash-section">
+            <button class="back-to-dashboard-btn" onclick="switchDashTab('bots')">
+                ← Back to Dashboard
+            </button>
+            <div class="glass-card profile-card">
+                <h2 style="margin-bottom:24px; font-family:var(--font-title)">Account Settings</h2>
+                <form onsubmit="handleProfileUpdate(event)" class="profile-row">
+                    <div class="profile-field">
+                        <label class="profile-label">Full Name</label>
+                        <input type="text" id="profName" class="profile-input" required placeholder="Enter your name">
+                    </div>
+                    <div class="profile-field">
+                        <label class="profile-label">Email Address</label>
+                        <input type="email" id="profEmail" class="profile-input" required readonly
+                            style="opacity:0.7; cursor:not-allowed">
+                        <span style="font-size:11px; color:var(--text-3)">Email cannot be changed</span>
+                    </div>
+                    <div class="profile-field">
+                        <label class="profile-label">Bio (Optional)</label>
+                        <textarea id="profBio" class="profile-input" rows="3"
+                            placeholder="Tell us about yourself..."></textarea>
+                    </div>
+                    <div style="margin-top:12px">
+                        <button type="submit" class="cta-btn cta-primary" style="width:100%">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bot Detail Modal -->
+    <div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetail()">
+        <div class="modal-box" style="max-width:850px; padding:0; overflow:hidden">
+            <div id="detailGradient" style="height:120px; background:var(--grad); position:relative">
+                <button class="modal-close" onclick="closeDetail()"
+                    style="top:20px; right:20px; background:rgba(0,0,0,0.2)">✕</button>
+            </div>
+
+            <div style="padding:0 40px 40px; margin-top:-40px; position:relative">
+                <div style="display:flex; align-items:flex-end; gap:24px; margin-bottom:32px">
+                    <div id="detailEmoji"
+                        style="width:100px; height:100px; background:var(--bg-card); border:4px solid var(--bg); border-radius:24px; display:flex; align-items:center; justify-content:center; font-size:50px; box-shadow:var(--shadow)">
+                        🤖</div>
+                    <div style="padding-bottom:10px">
+                        <h2 id="detailName"
+                            style="font-size:32px; font-weight:800; color:var(--text); font-family:var(--font-title); margin-bottom:4px">
+                            Bot Name</h2>
+                        <div style="display:flex; align-items:center; gap:12px">
+                            <span id="detailStatus" class="status-pill active">Active</span>
+                            <span id="detailModel"
+                                style="color:var(--text-3); font-size:13px; font-weight:600">GPT-4o</span>
+                        </div>
+                    </div>
+                    <div style="margin-left:auto; display:flex; gap:12px; padding-bottom:10px">
+                        <a id="detailEditBtn" href="#" class="cta-btn cta-primary">✏️ Edit Bot</a>
+                        <button id="detailToggleBtn" onclick="toggleActiveDetail()" class="cta-btn cta-ghost">⏸
+                            Pause</button>
+                    </div>
+                </div>
+
+                <div class="detail-grid">
+                    <div class="detail-main">
+                        <div class="detail-panel">
+                            <div class="panel-title">📝 Description</div>
+                            <p id="detailDesc" style="color:var(--text-2); font-size:15px; line-height:1.6">No
+                                description provided.</p>
+                        </div>
+                        <div class="detail-panel">
+                            <div class="panel-title">🧠 System Prompt</div>
+                            <div id="detailPrompt" class="prompt-preview">You are a helpful assistant...</div>
+                        </div>
+                    </div>
+
+                    <div class="detail-sidebar">
+                        <div class="detail-panel" style="margin-bottom:20px">
+                            <div class="panel-title">📊 Operations</div>
+                            <div class="detail-stat-row">
+                                <div class="tiny-stat">
+                                    <div id="statMsgsBot" class="tiny-stat-val">0</div>
+                                    <div class="tiny-stat-lbl">Msgs</div>
+                                </div>
+                                <div class="tiny-stat">
+                                    <div id="statChansBot" class="tiny-stat-val">0</div>
+                                    <div class="tiny-stat-lbl">Channels</div>
+                                </div>
+                                <div class="tiny-stat">
+                                    <div id="statUptimeBot" class="tiny-stat-val">99%</div>
+                                    <div class="tiny-stat-lbl">Health</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-panel">
+                            <div class="panel-title">🔌 Active Channels</div>
+                            <div id="detailChannels" style="display:flex; flex-direction:column; gap:10px">
+                                <!-- Channel items injected here -->
+                            </div>
+                            <a id="detailChanBtn" href="channels.html" class="cta-btn cta-ghost"
+                                style="width:100%; margin-top:16px; font-size:13px">Manage Channels</a>
+                        </div>
+
+                        <button onclick="openDeleteFromDetail()"
+                            style="width:100%; margin-top:24px; background:none; border:none; color:var(--red); font-size:13px; font-weight:700; cursor:pointer; opacity:0.6; transition:0.2s">🗑
+                            Delete Permanentely</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Delete confirm modal -->
     <div class="modal-overlay" id="deleteModal" onclick="if(event.target===this)closeDelete()">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>Delete Bot</h3>
-                <button class="modal-close" onclick="closeDelete()">✕</button>
-            </div>
-            <p class="modal-desc">Are you sure you want to delete <strong id="deleteNameLabel"></strong>? This cannot be
-                undone.</p>
-            <div style="display:flex;gap:10px;margin-top:20px">
-                <button class="cta-btn cta-danger" onclick="confirmDelete()" style="flex:1">Delete</button>
-                <button class="cta-btn cta-ghost" onclick="closeDelete()" style="flex:1">Cancel</button>
+        <div class="modal-box" style="max-width:400px; text-align:center">
+            <div style="font-size:48px; margin-bottom:16px">⚠️</div>
+            <h3 style="font-family:var(--font-title); font-size:22px; margin-bottom:12px">Delete this bot?</h3>
+            <p class="modal-desc">Are you sure you want to delete <strong id="deleteNameLabel"></strong>? This action is
+                irreversible.</p>
+            <div style="display:flex;gap:12px;margin-top:24px">
+                <button class="cta-btn cta-danger" onclick="confirmDelete()" style="flex:1">Delete Forever</button>
+                <button class="cta-btn cta-ghost" onclick="closeDelete()" style="flex:1">Keep It</button>
             </div>
         </div>
     </div>
 
     <div id="toastContainer" class="toast-container"></div>
-    <script src="platform.js"></script>
-    <script>
-        const API = window.location.protocol === 'file:' ? 'http://localhost:3001/api' : '/api';
+    <script type="module" src="platform.js"></script>
+    <script src="animation.js"></script>
+    <script type="module">
+        import { auth, db } from './firebase.js';
+        import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
         let currentUser = null;
         let deletingId = null;
+        let lastBotsData = [];
+        let activeDetailBotId = null;
 
         // ── Auth Guard ──────────────────────────────────────────────
-        async function checkAuth() {
-            const token = localStorage.getItem('sidd-auth-token');
-            if (!token) return redirect();
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) return redirect();
 
-            try {
-                const res = await fetch(`${API}/auth/me`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!res.ok) return redirect();
-                currentUser = await res.json();
-                showUser(currentUser);
-                document.getElementById('authGuard').style.display = 'none';
+            // Sync user and get full profile
+            const profile = await UserStore.sync(user);
+            currentUser = {
+                id: profile.uid,
+                name: profile.name,
+                email: profile.email,
+                bio: profile.bio || "",
+                credits: Math.floor(profile.credits || 0),
+                plan: profile.plan || "free"
+            };
+
+            showUser(currentUser);
+            document.getElementById('authGuard').style.display = 'none';
+            initRealtimeSync();
+            initProfileForm();
+
+            // Check for tab in URL
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('tab')) switchDashTab(params.get('tab'));
+        });
+
+        function initRealtimeSync() {
+            if (!auth.currentUser) return;
+
+            // Listen for bots (Removed orderBy to prevent 'Missing Index' errors for new users)
+            const q = query(
+                collection(db, 'bots'),
+                where('userId', '==', auth.currentUser.uid)
+            );
+
+            onSnapshot(q, (snapshot) => {
+                // Sort in memory to avoid missing index issues
+                lastBotsData = snapshot.docs
+                    .map(d => ({ ...d.data(), id: d.id }))
+                    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
                 renderBots();
-                updateStats();
-            } catch (e) {
-                redirect();
-            }
+                updateStats(lastBotsData);
+
+                // If detail modal is open, refresh it
+                if (activeDetailBotId) {
+                    const b = lastBotsData.find(x => x.id === activeDetailBotId);
+                    if (b) refreshDetailUI(b);
+                }
+            }, (err) => {
+                console.error("Bots sync error:", err);
+            });
         }
 
         function redirect() {
             window.location.href = 'login.html';
         }
 
-        function showUser(user) {
-            const initials = user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-            document.getElementById('userAvatar').textContent = initials;
-            document.getElementById('userName').textContent = user.name;
-            document.getElementById('userEmail').textContent = user.email;
-            document.getElementById('userChip').style.display = 'flex';
-            document.getElementById('logoutBtn').style.display = '';
+        // ── Navigation / Tabs ────────────────────────────────────────
+        window.switchDashTab = function (tab) {
+            document.querySelectorAll('.dash-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+            document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
+
+            if (tab === 'bots') {
+                document.getElementById('sectionBots').classList.add('active');
+                // Show stats, tabs, and search when on bots view
+                document.getElementById('statsStrip').style.display = '';
+                document.querySelector('.dash-tabs').style.display = '';
+            } else if (tab === 'profile') {
+                document.getElementById('sectionProfile').classList.add('active');
+                // Hide stats and tabs when viewing account settings
+                document.getElementById('statsStrip').style.display = 'none';
+                document.querySelector('.dash-tabs').style.display = 'none';
+            }
+
+            // Update URL without reload
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tab);
+            window.history.pushState({}, '', url);
         }
 
-        async function handleLogout() {
-            const token = localStorage.getItem('sidd-auth-token');
+        function showUser(user) {
+            const name = user.name || 'User';
+            const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+            document.getElementById('userAvatar').textContent = initials;
+            document.getElementById('userName').textContent = name;
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('userGroup').style.display = 'flex';
+        }
+
+        function initProfileForm() {
+            if (!currentUser) return;
+            document.getElementById('profName').value = currentUser.name || '';
+            document.getElementById('profEmail').value = currentUser.email || '';
+            document.getElementById('profBio').value = currentUser.bio || '';
+        }
+
+        window.handleProfileUpdate = async function (e) {
+            e.preventDefault();
+            const newName = document.getElementById('profName').value.trim();
+            const bio = document.getElementById('profBio').value.trim();
+
+            if (!newName) return showToast('Name is required', 'error', '⚠️');
+
+            showToast('Saving profile...', 'info', '⏳');
+
             try {
-                await fetch(`${API}/auth/logout`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                // Update Firestore User Document
+                await updateDoc(doc(db, "users", auth.currentUser.uid), {
+                    name: newName,
+                    bio: bio,
+                    updatedAt: Date.now()
                 });
-            } catch (e) { }
-            localStorage.removeItem('sidd-auth-token');
-            localStorage.removeItem('sidd-auth-user');
-            showToast('Logged out successfully', 'info', '👋');
-            setTimeout(() => window.location.href = 'login.html', 600);
+
+                currentUser.name = newName;
+                currentUser.bio = bio;
+
+                showUser(currentUser);
+                showToast('Profile updated successfully!', 'success', '✅');
+            } catch (err) {
+                showToast('Failed to update profile: ' + err.message, 'error', '❌');
+            }
         }
 
         // ── Bot rendering ───────────────────────────────────────────
-        function renderBots() {
-            const query = (document.getElementById('botSearch')?.value || '').toLowerCase();
-            const filter = document.getElementById('botFilter')?.value || 'all';
-            let bots = BotStore.getAll();
-            if (query) bots = bots.filter(b => b.name.toLowerCase().includes(query) || (b.desc || '').toLowerCase().includes(query));
-            if (filter === 'active') bots = bots.filter(b => b.active);
-            if (filter === 'inactive') bots = bots.filter(b => !b.active);
+        window.renderBots = function () {
+            const bots = lastBotsData;
+            const queryValue = (document.getElementById('botSearch')?.value || '').toLowerCase();
+            const filterValue = document.getElementById('botFilter')?.value || 'all';
+
+            let filtered = bots;
+            if (queryValue) filtered = filtered.filter(b => b.name.toLowerCase().includes(queryValue) || (b.desc || '').toLowerCase().includes(queryValue));
+            if (filterValue === 'active') filtered = filtered.filter(b => b.active);
+            if (filterValue === 'inactive') filtered = filtered.filter(b => !b.active);
 
             const grid = document.getElementById('botsGrid');
-            if (!bots.length) {
+            if (!filtered.length) {
                 grid.innerHTML = `<div class="empty-state">
-          <div class="empty-icon">🤖</div>
-          <h3>No bots yet</h3>
-          <p style="margin-bottom:24px">Create your first AI bot and deploy it anywhere.</p>
-          <a href="builder.html" class="cta-btn cta-primary">Create Your First Bot →</a>
-        </div>`;
+                    <div class="empty-icon">🤖</div>
+                    <h3>No bots found</h3>
+                    <p style="margin-bottom:24px">${bots.length ? 'Try adjusting your search or filters.' : 'Create your first AI bot and deploy it anywhere.'}</p>
+                    ${bots.length ? '' : '<a href="builder.html" class="cta-btn cta-primary">Create Your First Bot →</a>'}
+                </div>`;
                 return;
             }
 
-            grid.innerHTML = bots.map(b => {
-                const channels = Object.keys(b.channels || {}).filter(c => (b.channels || {})[c]?.connected);
-                const chanBadges = channels.map(c => `<span class="ch-badge">${(CHANNEL_META[c] || {}).icon || '🔌'} ${(CHANNEL_META[c] || {}).label || c}</span>`).join('');
-                return `<div class="glass-card bot-card">
-          <div class="bot-card-head">
-            <div class="bot-emoji">${b.emoji || '🤖'}</div>
-            <div>
-              <div class="bot-name">${escHtml(b.name)}</div>
-              <div class="bot-model">${b.model || 'Llama 3'}</div>
-            </div>
-            <span class="bot-status ${b.active ? 'status-active' : 'status-inactive'}">${b.active ? 'Active' : 'Inactive'}</span>
-          </div>
-          <p class="bot-desc">${escHtml(b.desc || 'No description')}</p>
-          <div class="bot-channels">${chanBadges || '<span class="ch-badge">No channels</span>'}</div>
-          <div class="bot-meta">Created ${relativeTime(b.createdAt)} · ${b.messageCount || 0} messages</div>
-          <div class="bot-actions">
-            <a href="builder.html?id=${b.id}" class="bot-action-btn primary">✏️ Edit</a>
-            <a href="channels.html?id=${b.id}" class="bot-action-btn">🔌 Channels</a>
-            <button class="bot-action-btn" onclick="toggleActive('${b.id}')">${b.active ? '⏸ Pause' : '▶ Start'}</button>
-            <button class="bot-action-btn danger" onclick="openDelete('${b.id}','${escHtml(b.name)}')">🗑</button>
-          </div>
-        </div>`;
+            grid.innerHTML = filtered.map(b => {
+                const channels = b.channels || {};
+                const connectedChans = Object.keys(channels).filter(c => channels[c].connected);
+                const isDeployed = connectedChans.length > 0;
+                const isDraft = !b.systemPrompt;
+
+                // Advanced Status
+                let statusClass = 'paused';
+                let statusLabel = 'Paused';
+                if (b.active) {
+                    if (isDeployed) { statusClass = 'deployed'; statusLabel = 'Deployed'; }
+                    else if (isDraft) { statusClass = 'draft'; statusLabel = 'Draft'; }
+                    else { statusClass = 'active'; statusLabel = 'Ready'; }
+                }
+
+                // Platform Icons
+                const PLAT_ICONS = { whatsapp: '💬', telegram: '✈️', discord: '🎮', webchat: '🌐', slack: '⚡' };
+                const chanIconsHtml = connectedChans.map(c => `<div class="plat-mini" title="${c}">${PLAT_ICONS[c] || '🔌'}</div>`).join('');
+
+                // Simulated Usage Mini-Graph (Senior Dev touch)
+                const usage = Array.from({ length: 12 }, () => Math.random() > 0.5 ? 'high' : '');
+                const usageHtml = `<div class="usage-mini-graph">${usage.map(u => `<div class="usage-bar ${u}"></div>`).join('')}</div>`;
+
+                return `
+                <div class="glass-card bot-card" onclick="openDetail('${b.id}')">
+                    <div class="bot-card-actions">
+                        <button class="mini-action" onclick="event.stopPropagation(); window.location.href='builder.html?id=${b.id}'" title="Modify Logic">✏️</button>
+                        <button class="mini-action" onclick="event.stopPropagation(); window.location.href='channels.html?id=${b.id}'" title="Deployments">🔌</button>
+                    </div>
+                    <div class="bot-card-top">
+                        <div class="bot-emoji-frame">${b.emoji || '🤖'}</div>
+                        <div class="bot-info">
+                            <div class="bot-name">${escHtml(b.name)}</div>
+                            <div class="bot-model-tag">${b.model || 'Gemini 2.0 Pro'}</div>
+                        </div>
+                        <span class="status-pill ${statusClass}">${statusLabel}</span>
+                    </div>
+                    <div class="bot-card-mid">
+                        <p class="bot-desc">${escHtml(b.desc || 'Optimized AI Agent monitoring channels.')}</p>
+                        <div class="card-platforms">${chanIconsHtml || '<span style="font-size:10px; opacity:0.5">Not deployed yet</span>'}</div>
+                        <div style="font-size:10px; color:var(--text-3); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px">Traffic Intensity</div>
+                        ${usageHtml}
+                    </div>
+                    <div class="bot-metadata">
+                        <div class="meta-item">💬 ${b.messageCount || 0} hits</div>
+                        <div class="meta-item" style="margin-left:auto; opacity:0.6">${relativeTime(b.createdAt)}</div>
+                    </div>
+                </div>`;
             }).join('');
         }
 
         function escHtml(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
-        function toggleActive(id) {
-            const b = BotStore.get(id); if (!b) return;
-            b.active = !b.active;
-            BotStore.save(b);
-            renderBots();
-            updateStats();
-            showToast(b.active ? 'Bot started ▶' : 'Bot paused ⏸', 'info', b.active ? '🟢' : '⏸');
+        // ── Bot Detail View ──────────────────────────────────────────
+        window.openDetail = function (id) {
+            const b = lastBotsData.find(x => x.id === id);
+            if (!b) return;
+            activeDetailBotId = id;
+            refreshDetailUI(b);
+            document.getElementById('detailModal').classList.add('open');
         }
 
-        function openDelete(id, name) {
+        function refreshDetailUI(b) {
+            document.getElementById('detailName').textContent = b.name;
+            document.getElementById('detailEmoji').textContent = b.emoji || '🤖';
+            document.getElementById('detailModel').textContent = b.model || 'Gemini 2.0 Pro';
+            document.getElementById('detailDesc').textContent = b.desc || 'No description provided.';
+            document.getElementById('detailPrompt').textContent = b.systemPrompt || 'No system prompt defined.';
+            document.getElementById('statMsgsBot').textContent = b.messageCount || 0;
+
+            const statusEl = document.getElementById('detailStatus');
+            statusEl.textContent = b.active ? 'Active' : 'Paused';
+            statusEl.className = `status-pill ${b.active ? 'active' : 'paused'}`;
+
+            const toggleBtn = document.getElementById('detailToggleBtn');
+            toggleBtn.textContent = b.active ? '⏸ Pause' : '▶ Start';
+
+            document.getElementById('detailEditBtn').href = `builder.html?id=${b.id}`;
+            document.getElementById('detailChanBtn').href = `channels.html?id=${b.id}`;
+
+            // Render channels in sidebar
+            const chanContainer = document.getElementById('detailChannels');
+            const channels = Object.keys(b.channels || {}).filter(c => b.channels[c].connected);
+            if (channels.length === 0) {
+                chanContainer.innerHTML = `<p style="font-size:12px; color:var(--text-3)">No active channels.</p>`;
+                document.getElementById('statChansBot').textContent = 0;
+            } else {
+                const CHANNEL_META = {
+                    'webchat': { label: 'Web Widget', icon: '🌐' },
+                    'whatsapp': { label: 'WhatsApp', icon: '💬' },
+                    'telegram': { label: 'Telegram', icon: '✈️' },
+                    'discord': { label: 'Discord', icon: '👾' },
+                    'slack': { label: 'Slack', icon: '⚡' }
+                };
+                chanContainer.innerHTML = channels.map(c => `
+                    <div style="display:flex; align-items:center; gap:10px; padding:8px 12px; background:rgba(255, 255, 255, 0.03); border-radius:10px; border:1px solid rgba(255, 255, 255, 0.05)">
+                        <span>${CHANNEL_META[c]?.icon || '🔌'}</span>
+                        <span style="font-size:13px; font-weight:600; color:var(--text)">${CHANNEL_META[c]?.label || c}</span>
+                        <span style="margin-left:auto; width:6px; height:6px; background:var(--green); border-radius:50%; box-shadow: 0 0 10px var(--green)"></span>
+                    </div>
+                `).join('');
+                document.getElementById('statChansBot').textContent = channels.length;
+            }
+        }
+
+        window.closeDetail = function () {
+            document.getElementById('detailModal').classList.remove('open');
+            activeDetailBotId = null;
+        }
+
+        window.toggleActiveDetail = async function () {
+            if (!activeDetailBotId) return;
+            const b = lastBotsData.find(x => x.id === activeDetailBotId);
+            if (!b) return;
+
+            const newState = !b.active;
+            b.active = newState; // Optimistic update
+            refreshDetailUI(b);
+
+            await updateDoc(doc(db, 'bots', activeDetailBotId), { active: newState });
+            showToast(newState ? 'Bot resumed successfully' : 'Bot paused successfully', 'info', newState ? '🟢' : '⏸');
+        }
+
+        window.openDeleteFromDetail = function () {
+            const name = document.getElementById('detailName').textContent;
+            closeDetail();
+            openDelete(activeDetailBotId, name);
+        }
+
+        window.toggleActive = async function (id) {
+            const b = lastBotsData.find(x => x.id === id);
+            if (!b) return;
+            const newState = !b.active;
+            await updateDoc(doc(db, 'bots', id), { active: newState });
+            showToast(newState ? 'Bot resumed successfully' : 'Bot paused successfully', 'info', newState ? '🟢' : '⏸');
+        }
+
+        window.openDelete = function (id, name) {
             deletingId = id;
             document.getElementById('deleteNameLabel').textContent = name;
             document.getElementById('deleteModal').classList.add('open');
         }
-        function closeDelete() { document.getElementById('deleteModal').classList.remove('open'); deletingId = null; }
-        function confirmDelete() {
+        window.closeDelete = function () { document.getElementById('deleteModal').classList.remove('open'); deletingId = null; }
+
+        window.confirmDelete = async function () {
             if (!deletingId) return;
-            BotStore.delete(deletingId);
+            await BotStore.delete(deletingId);
             closeDelete();
-            renderBots();
-            updateStats();
-            showToast('Bot deleted', 'info', '🗑');
+            showToast('Bot removed successfully', 'info', '🗑');
         }
 
-        function updateStats() {
-            const s = BotStore.stats();
-            document.getElementById('statBots').textContent = s.bots;
-            document.getElementById('statChannels').textContent = s.channels;
-            document.getElementById('statMsgs').textContent = s.messages;
-            document.getElementById('statFredo').textContent = (s.messages * 2) + ' $';
+        function updateStats(bots) {
+            const channels = bots.reduce((n, b) => n + Object.keys(b.channels || {}).filter(c => b.channels[c]?.connected).length, 0);
+            const msgs = bots.reduce((n, b) => n + (b.messageCount || 0), 0);
+
+            document.getElementById('statBots').textContent = bots.length;
+            document.getElementById('statChannels').textContent = channels;
+            document.getElementById('statMsgs').textContent = msgs;
+
+            // Show credits from currentUser if available
+            const earned = currentUser?.credits || 0;
+            document.getElementById('statFredo').textContent = earned + ' $';
         }
 
-        // ── Init ─────────────────────────────────────────────────────
-        checkAuth();
+        // Initialized by onAuthStateChanged
     </script>
 </body>
 

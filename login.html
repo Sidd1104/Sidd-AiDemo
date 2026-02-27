@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login — Sidd-AI</title>
-    <meta name="description" content="Sign in or create your Sidd-AI account." />
+    <title>Login — Sharp AI</title>
+    <meta name="description" content="Sign in or create your Sharp AI account." />
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="platform.css" />
@@ -347,6 +347,110 @@
             position: relative;
         }
 
+        /* ── Social Login ── */
+        .social-login {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .google-btn {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all .2s;
+        }
+
+        .google-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--text-2);
+        }
+
+        .google-icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* ── Method Toggles ── */
+        .method-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .method-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-2);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .method-btn.active {
+            background: var(--purple);
+            color: #fff;
+            border-color: var(--purple);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        /* ── Phone Auth Update ── */
+        .phone-input-wrap {
+            display: flex;
+            gap: 10px;
+        }
+
+        .country-code {
+            width: 110px;
+            /* Slightly wider for emoji + code */
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 13px 8px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .country-code option {
+            background: var(--bg-card);
+            color: var(--text);
+        }
+
+        #recaptcha-container {
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .otp-group {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            animation: fadeIn .3s ease both;
+        }
+
+        .otp-group.show {
+            display: flex;
+        }
+
         @media (max-width: 480px) {
             .auth-card {
                 padding: 32px 22px;
@@ -371,30 +475,44 @@
                             fill="url(#authGrad)" stroke="none" />
                         <defs>
                             <linearGradient id="authGrad" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0%" stop-color="#facc15" />
-                                <stop offset="100%" stop-color="#f43f5e" />
+                                <stop offset="0%" stop-color="#6366f1" />
+                                <stop offset="100%" stop-color="#8b5cf6" />
                             </linearGradient>
                         </defs>
                     </svg>
                 </div>
-                <span class="auth-logo-text">Sidd<span class="auth-logo-accent">-AI</span></span>
+                <span class="auth-logo-text">Sharp<span class="auth-logo-accent"> AI</span></span>
             </div>
 
             <!-- Tab switcher -->
             <div class="auth-tabs" role="tablist">
-                <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')" role="tab">Sign In</button>
-                <button class="auth-tab" id="tabRegister" onclick="switchTab('register')" role="tab">Create
-                    Account</button>
+                <button class="auth-tab active" id="tabLogin" role="tab">Sign In</button>
+                <button class="auth-tab" id="tabRegister" role="tab">Create Account</button>
             </div>
 
-            <!-- ── LOGIN PANEL ── -->
+            <!-- ── SIGN IN PANEL ── -->
             <div id="panelLogin" class="auth-panel">
                 <h1 class="auth-heading">Welcome back</h1>
-                <p class="auth-sub">Sign in to your Sidd-AI account</p>
+                <p class="auth-sub">Sign in to your Sharp AI account</p>
+
+                <div class="social-login">
+                    <button class="google-btn" id="googleLoginBtn">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                            class="google-icon" alt="Google">
+                        Sign in with Google
+                    </button>
+                    <div class="auth-divider"><span>or use</span></div>
+                </div>
+
+                <div class="method-toggle">
+                    <button class="method-btn active" onclick="switchMethod('login', 'email')">Email</button>
+                    <button class="method-btn" onclick="switchMethod('login', 'phone')">Phone No.</button>
+                </div>
 
                 <div class="auth-alert" id="loginAlert"></div>
 
-                <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
+                <!-- Email Login Form -->
+                <form class="auth-form" id="loginForm">
                     <div class="auth-field">
                         <label class="auth-label" for="loginEmail">Email</label>
                         <input class="auth-input" id="loginEmail" type="email" placeholder="you@example.com"
@@ -411,19 +529,80 @@
                     </button>
                 </form>
 
+                <!-- Phone Login Form (Hidden by default) -->
+                <form class="auth-form" id="phoneLoginForm" style="display:none">
+                    <div class="auth-field">
+                        <label class="auth-label">Phone Number</label>
+                        <div class="phone-input-wrap">
+                            <select class="country-code" id="loginCountryCode">
+                                <option value="+1">🇺🇸 +1</option>
+                                <option value="+44">🇬🇧 +44</option>
+                                <option value="+91" selected>🇮🇳 +91</option>
+                                <option value="+971">🇦🇪 +971</option>
+                                <option value="+61">🇦🇺 +61</option>
+                                <option value="+65">🇸🇬 +65</option>
+                                <option value="+1">🇨🇦 +1</option>
+                                <option value="+49">🇩🇪 +49</option>
+                                <option value="+33">🇫🇷 +33</option>
+                                <option value="+81">🇯🇵 +81</option>
+                                <option value="+39">🇮🇹 +39</option>
+                                <option value="+7">🇷🇺 +7</option>
+                                <option value="+55">🇧🇷 +55</option>
+                                <option value="+27">🇿🇦 +27</option>
+                                <option value="+62">🇮🇩 +62</option>
+                                <option value="+60">🇲🇾 +60</option>
+                                <option value="+82">🇰🇷 +82</option>
+                                <option value="+52">🇲🇽 +52</option>
+                                <option value="+34">🇪🇸 +34</option>
+                                <option value="+90">🇹🇷 +90</option>
+                                <option value="+966">🇸🇦 +966</option>
+                                <option value="+20">🇪🇬 +20</option>
+                            </select>
+                            <input class="auth-input" id="loginPhoneNumber" type="tel" placeholder="1234567890" />
+                        </div>
+                    </div>
+                    <div id="login-recaptcha-container"></div>
+                    <div class="otp-group" id="loginOtpGroup">
+                        <div class="auth-field">
+                            <label class="auth-label">Verification Code</label>
+                            <input class="auth-input" id="loginOtpCode" type="text" placeholder="6-digit code"
+                                maxlength="6" />
+                        </div>
+                    </div>
+                    <button class="auth-submit" id="loginPhoneSubmitBtn" type="submit">
+                        <div class="btn-spinner" id="loginPhoneSpinner"></div>
+                        <span id="loginPhoneBtnText">Send Code →</span>
+                    </button>
+                </form>
+
                 <div class="auth-footer" style="margin-top:20px">
                     No account? <span onclick="switchTab('register')">Create one free →</span>
                 </div>
             </div>
 
-            <!-- ── REGISTER PANEL ── -->
+            <!-- ── CREATE ACCOUNT PANEL ── -->
             <div id="panelRegister" class="auth-panel" style="display:none">
                 <h1 class="auth-heading">Create account</h1>
-                <p class="auth-sub">Build AI bots. Earn $Snappy. Free to start.</p>
+                <p class="auth-sub">Build AI bots. Earn $Sharp. Free to start.</p>
+
+                <div class="social-login">
+                    <button class="google-btn" id="googleRegisterBtn">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                            class="google-icon" alt="Google">
+                        Sign up with Google
+                    </button>
+                    <div class="auth-divider"><span>or use</span></div>
+                </div>
+
+                <div class="method-toggle">
+                    <button class="method-btn active" onclick="switchMethod('reg', 'email')">Email</button>
+                    <button class="method-btn" onclick="switchMethod('reg', 'phone')">Phone No.</button>
+                </div>
 
                 <div class="auth-alert" id="registerAlert"></div>
 
-                <form class="auth-form" id="registerForm" onsubmit="handleRegister(event)">
+                <!-- Email Register Form -->
+                <form class="auth-form" id="registerForm">
                     <div class="auth-field">
                         <label class="auth-label" for="regName">Full Name</label>
                         <input class="auth-input" id="regName" type="text" placeholder="Your name" autocomplete="name"
@@ -437,19 +616,64 @@
                     <div class="auth-field">
                         <label class="auth-label" for="regPassword">Password</label>
                         <input class="auth-input" id="regPassword" type="password" placeholder="Min 6 characters"
-                            autocomplete="new-password" required oninput="updateStrength(this.value)" />
+                            autocomplete="new-password" required />
                         <div class="pw-strength">
                             <div class="pw-strength-fill" id="pwFill" style="width:0%"></div>
                         </div>
                     </div>
-                    <div class="auth-field">
-                        <label class="auth-label" for="regConfirm">Confirm Password</label>
-                        <input class="auth-input" id="regConfirm" type="password" placeholder="Repeat password"
-                            autocomplete="new-password" required />
-                    </div>
                     <button class="auth-submit" id="registerBtn" type="submit">
                         <div class="btn-spinner" id="registerSpinner"></div>
                         <span id="registerBtnText">Create Account →</span>
+                    </button>
+                </form>
+
+                <!-- Phone Register Form (Hidden by default) -->
+                <form class="auth-form" id="phoneRegisterForm" style="display:none">
+                    <div class="auth-field">
+                        <label class="auth-label">Full Name</label>
+                        <input class="auth-input" id="regPhoneName" type="text" placeholder="Your name" />
+                    </div>
+                    <div class="auth-field">
+                        <label class="auth-label">Phone Number</label>
+                        <div class="phone-input-wrap">
+                            <select class="country-code" id="regCountryCode">
+                                <option value="+1">🇺🇸 +1</option>
+                                <option value="+44">🇬🇧 +44</option>
+                                <option value="+91" selected>🇮🇳 +91</option>
+                                <option value="+971">🇦🇪 +971</option>
+                                <option value="+61">🇦🇺 +61</option>
+                                <option value="+65">🇸🇬 +65</option>
+                                <option value="+1">🇨🇦 +1</option>
+                                <option value="+49">🇩🇪 +49</option>
+                                <option value="+33">🇫🇷 +33</option>
+                                <option value="+81">🇯🇵 +81</option>
+                                <option value="+39">🇮🇹 +39</option>
+                                <option value="+7">🇷🇺 +7</option>
+                                <option value="+55">🇧🇷 +55</option>
+                                <option value="+27">🇿🇦 +27</option>
+                                <option value="+62">🇮🇩 +62</option>
+                                <option value="+60">🇲🇾 +60</option>
+                                <option value="+82">🇰🇷 +82</option>
+                                <option value="+52">🇲🇽 +52</option>
+                                <option value="+34">🇪🇸 +34</option>
+                                <option value="+90">🇹🇷 +90</option>
+                                <option value="+966">🇸🇦 +966</option>
+                                <option value="+20">🇪🇬 +20</option>
+                            </select>
+                            <input class="auth-input" id="regPhoneNumber" type="tel" placeholder="1234567890" />
+                        </div>
+                    </div>
+                    <div id="reg-recaptcha-container"></div>
+                    <div class="otp-group" id="regOtpGroup">
+                        <div class="auth-field">
+                            <label class="auth-label">Verification Code</label>
+                            <input class="auth-input" id="regOtpCode" type="text" placeholder="6-digit code"
+                                maxlength="6" />
+                        </div>
+                    </div>
+                    <button class="auth-submit" id="registerPhoneSubmitBtn" type="submit">
+                        <div class="btn-spinner" id="registerPhoneSpinner"></div>
+                        <span id="registerPhoneBtnText">Send Code →</span>
                     </button>
                 </form>
 
@@ -462,39 +686,197 @@
     </div>
 
     <div id="toastContainer" class="toast-container"></div>
-    <script src="platform.js"></script>
-    <script>
-        const API = window.location.protocol === 'file:'
-            ? 'http://localhost:3001/api'
-            : '/api';
+    <script type="module" src="platform.js"></script>
+    <script src="animation.js"></script>
+    <script type="module">
+        import { auth, db } from './firebase.js';
+        import {
+            signInWithEmailAndPassword,
+            createUserWithEmailAndPassword,
+            updateProfile,
+            onAuthStateChanged,
+            GoogleAuthProvider,
+            signInWithPopup,
+            RecaptchaVerifier,
+            signInWithPhoneNumber
+        } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // ── If already logged in, go straight to dashboard ──
-        (function () {
-            const token = localStorage.getItem('sidd-auth-token');
-            if (token) {
-                fetch(`${API}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } })
-                    .then(r => r.ok ? r.json() : null)
-                    .then(user => { if (user) window.location.href = 'dashboard.html'; })
-                    .catch(() => { });
+        // ── Auth Guard: If already logged in, go to dashboard ──
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.location.href = 'dashboard.html';
             }
-        })();
+        });
 
-        // ── Tab logic ──────────────────────────────────────
-        function switchTab(tab) {
+        // ── Auth Guard: If already logged in, go to dashboard ──
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.location.href = 'dashboard.html';
+            }
+        });
+
+        // ── Tab & Method Switching ──
+        window.switchTab = (tab) => {
             const isLogin = tab === 'login';
             document.getElementById('tabLogin').classList.toggle('active', isLogin);
             document.getElementById('tabRegister').classList.toggle('active', !isLogin);
             document.getElementById('panelLogin').style.display = isLogin ? '' : 'none';
-            document.getElementById('panelRegister').style.display = isLogin ? 'none' : '';
-            // Re-trigger animation
-            const panel = document.getElementById(isLogin ? 'panelLogin' : 'panelRegister');
-            panel.style.animation = 'none';
-            panel.offsetHeight; // reflow
-            panel.style.animation = '';
+            document.getElementById('panelRegister').style.display = !isLogin ? '' : 'none';
+        };
+
+        window.switchMethod = (panel, method) => {
+            const isEmail = method === 'email';
+            if (panel === 'login') {
+                document.getElementById('loginForm').style.display = isEmail ? '' : 'none';
+                document.getElementById('phoneLoginForm').style.display = isEmail ? 'none' : '';
+                document.querySelectorAll('#panelLogin .method-btn')[0].classList.toggle('active', isEmail);
+                document.querySelectorAll('#panelLogin .method-btn')[1].classList.toggle('active', !isEmail);
+            } else {
+                document.getElementById('registerForm').style.display = isEmail ? '' : 'none';
+                document.getElementById('phoneRegisterForm').style.display = isEmail ? 'none' : '';
+                document.querySelectorAll('#panelRegister .method-btn')[0].classList.toggle('active', isEmail);
+                document.querySelectorAll('#panelRegister .method-btn')[1].classList.toggle('active', !isEmail);
+            }
+        };
+
+        // ── Helpers ──
+        function showAlert(id, msg, type) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = (type === 'error' ? '⚠ ' : '✓ ') + msg;
+            el.className = `auth-alert ${type} show`;
+        }
+        function clearAlert(id) {
+            const el = document.getElementById(id);
+            if (el) el.className = 'auth-alert';
+        }
+        function setLoading(btnId, spinnerId, textId, loading, label) {
+            const btn = document.getElementById(btnId);
+            const spinner = document.getElementById(spinnerId);
+            const text = document.getElementById(textId);
+            if (btn) btn.disabled = loading;
+            if (spinner) spinner.style.display = loading ? 'block' : 'none';
+            if (text) text.textContent = loading ? 'Processing...' : label;
         }
 
-        // ── Password strength ────────────────────────────
-        function updateStrength(pw) {
+        // ── Email Auth ──
+        async function handleEmailLogin(e) {
+            e.preventDefault();
+            clearAlert('loginAlert');
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Sign In →');
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (err) {
+                showAlert('loginAlert', err.message.replace('Firebase: ', ''), 'error');
+                setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Sign In →');
+            }
+        }
+        document.getElementById('loginForm').addEventListener('submit', handleEmailLogin);
+
+        async function handleEmailRegister(e) {
+            e.preventDefault();
+            clearAlert('registerAlert');
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            setLoading('registerBtn', 'registerSpinner', 'registerBtnText', true, 'Create Account →');
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(cred.user, { displayName: name });
+                await UserStore.sync(cred.user);
+                showToast('Welcome to Sharp AI! 🚀', 'success', '🎉');
+            } catch (err) {
+                showAlert('registerAlert', err.message.replace('Firebase: ', ''), 'error');
+                setLoading('registerBtn', 'registerSpinner', 'registerBtnText', false, 'Create Account →');
+            }
+        }
+        document.getElementById('registerForm').addEventListener('submit', handleEmailRegister);
+
+        // ── Google Auth ──
+        async function handleGoogleAuth() {
+            const provider = new GoogleAuthProvider();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                await UserStore.sync(result.user);
+                showToast('Welcome to Sharp AI! 🚀', 'success', '🎉');
+            } catch (err) {
+                showToast(err.message.replace('Firebase: ', ''), 'error', '⚠️');
+            }
+        }
+        document.getElementById('googleLoginBtn').addEventListener('click', handleGoogleAuth);
+        document.getElementById('googleRegisterBtn').addEventListener('click', handleGoogleAuth);
+
+        // ── Phone Auth Logic ──
+        let loginConfirmation = null;
+        let regConfirmation = null;
+
+        function initRecaptcha(type) {
+            const containerId = type === 'login' ? 'login-recaptcha-container' : 'reg-recaptcha-container';
+            const verifierKey = type === 'login' ? 'loginVerifier' : 'regVerifier';
+            if (window[verifierKey]) return;
+            window[verifierKey] = new RecaptchaVerifier(auth, containerId, { 'size': 'invisible' });
+        }
+
+        async function handlePhoneAuth(type, e) {
+            e.preventDefault();
+            const isLogin = type === 'login';
+            const alertId = isLogin ? 'loginAlert' : 'registerAlert';
+            const btnId = isLogin ? 'loginPhoneSubmitBtn' : 'registerPhoneSubmitBtn';
+            const spinnerId = isLogin ? 'loginPhoneSpinner' : 'registerPhoneSpinner';
+            const textId = isLogin ? 'loginPhoneBtnText' : 'registerPhoneBtnText';
+            const phoneVal = document.getElementById(isLogin ? 'loginPhoneNumber' : 'regPhoneNumber').value.trim();
+            const countryVal = document.getElementById(isLogin ? 'loginCountryCode' : 'regCountryCode').value;
+            const fullPhone = countryVal + phoneVal;
+            const confirmation = isLogin ? loginConfirmation : regConfirmation;
+            const otpGroup = document.getElementById(isLogin ? 'loginOtpGroup' : 'regOtpGroup');
+            const otpCode = document.getElementById(isLogin ? 'loginOtpCode' : 'regOtpCode').value.trim();
+
+            clearAlert(alertId);
+
+            // Step 1: Send Code
+            if (!confirmation) {
+                if (!phoneVal) return showAlert(alertId, 'Enter phone number', 'error');
+                setLoading(btnId, spinnerId, textId, true, 'Sending...');
+                initRecaptcha(type);
+                try {
+                    const result = await signInWithPhoneNumber(auth, fullPhone, window[type === 'login' ? 'loginVerifier' : 'regVerifier']);
+                    if (isLogin) loginConfirmation = result; else regConfirmation = result;
+                    otpGroup.classList.add('show');
+                    setLoading(btnId, spinnerId, textId, false, 'Verify Code →');
+                    showAlert(alertId, 'OTP sent to ' + fullPhone, 'success');
+                } catch (err) {
+                    showAlert(alertId, err.message.replace('Firebase: ', ''), 'error');
+                    setLoading(btnId, spinnerId, textId, false, 'Send Code →');
+                }
+            }
+            // Step 2: Verify Code
+            else {
+                if (!otpCode) return showAlert(alertId, 'Enter 6-digit code', 'error');
+                setLoading(btnId, spinnerId, textId, true, 'Verifying...');
+                try {
+                    const result = await confirmation.confirm(otpCode);
+                    if (!isLogin) {
+                        const name = document.getElementById('regPhoneName').value.trim() || 'Phone User';
+                        await updateProfile(result.user, { displayName: name });
+                    }
+                    await UserStore.sync(result.user);
+                    showToast('Success! Redirecting...', 'success', '🚀');
+                } catch (err) {
+                    showAlert(alertId, 'Invalid code. Try again.', 'error');
+                    setLoading(btnId, spinnerId, textId, false, 'Verify Code →');
+                }
+            }
+        }
+
+        document.getElementById('phoneLoginForm').addEventListener('submit', (e) => handlePhoneAuth('login', e));
+        document.getElementById('phoneRegisterForm').addEventListener('submit', (e) => handlePhoneAuth('reg', e));
+
+        // ── Password strength ──
+        document.getElementById('regPassword').addEventListener('input', (e) => {
+            const pw = e.target.value;
             let score = 0;
             if (pw.length >= 6) score++;
             if (pw.length >= 10) score++;
@@ -505,85 +887,11 @@
             const colors = ['#ef4444', '#f59e0b', '#f59e0b', '#10b981', '#10b981'];
             fill.style.width = (score / 5 * 100) + '%';
             fill.style.background = colors[Math.max(0, score - 1)] || '#ef4444';
-        }
+        });
 
-        // ── Alert helper ─────────────────────────────────
-        function showAlert(id, msg, type) {
-            const el = document.getElementById(id);
-            el.textContent = (type === 'error' ? '⚠ ' : '✓ ') + msg;
-            el.className = `auth-alert ${type} show`;
-        }
-        function clearAlert(id) {
-            document.getElementById(id).className = 'auth-alert';
-        }
-
-        // ── Set button loading state ──────────────────────
-        function setLoading(btnId, spinnerId, textId, loading, label) {
-            document.getElementById(btnId).disabled = loading;
-            document.getElementById(spinnerId).style.display = loading ? 'block' : 'none';
-            document.getElementById(textId).textContent = loading ? 'Please wait…' : label;
-        }
-
-        // ── Login ─────────────────────────────────────────
-        async function handleLogin(e) {
-            e.preventDefault();
-            clearAlert('loginAlert');
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Sign In →');
-
-            try {
-                const res = await fetch(`${API}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password }),
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Login failed.');
-                localStorage.setItem('sidd-auth-token', data.token);
-                localStorage.setItem('sidd-auth-user', JSON.stringify(data.user));
-                showToast('Welcome back, ' + data.user.name + '! 🎉', 'success', '✅');
-                setTimeout(() => window.location.href = 'dashboard.html', 700);
-            } catch (err) {
-                showAlert('loginAlert', err.message, 'error');
-            } finally {
-                setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Sign In →');
-            }
-        }
-
-        // ── Register ─────────────────────────────────────
-        async function handleRegister(e) {
-            e.preventDefault();
-            clearAlert('registerAlert');
-            const name = document.getElementById('regName').value.trim();
-            const email = document.getElementById('regEmail').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const confirm = document.getElementById('regConfirm').value;
-
-            if (password !== confirm) {
-                return showAlert('registerAlert', 'Passwords do not match.', 'error');
-            }
-
-            setLoading('registerBtn', 'registerSpinner', 'registerBtnText', true, 'Create Account →');
-
-            try {
-                const res = await fetch(`${API}/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password }),
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Registration failed.');
-                localStorage.setItem('sidd-auth-token', data.token);
-                localStorage.setItem('sidd-auth-user', JSON.stringify(data.user));
-                showToast('Account created! Welcome, ' + data.user.name + ' 🚀', 'success', '🎉');
-                setTimeout(() => window.location.href = 'dashboard.html', 800);
-            } catch (err) {
-                showAlert('registerAlert', err.message, 'error');
-            } finally {
-                setLoading('registerBtn', 'registerSpinner', 'registerBtnText', false, 'Create Account →');
-            }
-        }
+        // Tab click listeners
+        document.getElementById('tabLogin').addEventListener('click', () => switchTab('login'));
+        document.getElementById('tabRegister').addEventListener('click', () => switchTab('register'));
     </script>
 </body>
 

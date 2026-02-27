@@ -1,8 +1,8 @@
 /* ═══════════════════════════════════════════════
-   SIDD-AI — SPACE NIGHT SKY THEME
+   SHARP AI — SPACE NIGHT SKY THEME
    Deep cosmos · Moon glow · Shooting stars
    Glassmorphism panels · DM Sans / Space Grotesk
-═══════════════════════════════════════════════ */
+ ═══════════════════════════════════════════════ */
 
 /* ── Fonts & Reset ─────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
@@ -48,26 +48,28 @@
   --radius-lg: 18px;
   --radius-xl: 24px;
 
-  /* glass */
-  --glass-bg: rgba(8, 8, 28, 0.7);
-  --glass-blur: 20px;
-  --glass-bdr: rgba(139, 92, 246, 0.18);
+  /* glass refinement */
+  --glass-bg: rgba(8, 8, 28, 0.75);
+  --glass-blur: 24px;
+  --glass-bdr: rgba(139, 92, 246, 0.22);
+  --glass-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+  --glass-glow-purple: 0 8px 32px 0 rgba(139, 92, 246, 0.15);
 }
 
 [data-theme="light"] {
-  --space-deepest: #f1f5fd;
-  --space-deep: #e8ecfa;
-  --space-mid: #dde3f5;
-  --space-card: rgba(240, 242, 255, 0.85);
-  --space-hover: rgba(225, 228, 252, 0.9);
-  --space-border: rgba(99, 102, 241, 0.18);
-  --space-border2: rgba(99, 102, 241, 0.3);
-  --text-1: #1e2036;
-  --text-2: #374151;
-  --text-3: #6b7280;
-  --text-4: #9ca3af;
-  --glass-bg: rgba(240, 241, 255, 0.8);
-  --glass-bdr: rgba(99, 102, 241, 0.25);
+  --space-deepest: #f8fafc;
+  --space-deep: #f1f5f9;
+  --space-mid: #e2e8f0;
+  --space-card: rgba(255, 255, 255, 0.8);
+  --space-hover: rgba(248, 250, 252, 0.9);
+  --space-border: rgba(99, 102, 241, 0.12);
+  --space-border2: rgba(99, 102, 241, 0.2);
+  --text-1: #0f172a;
+  --text-2: #334155;
+  --text-3: #64748b;
+  --text-4: #94a3b8;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bdr: rgba(99, 102, 241, 0.15);
   --moon-glow: rgba(253, 230, 138, 0.05);
 }
 
@@ -75,9 +77,12 @@ html,
 body {
   height: 100%;
   font-family: 'DM Sans', -apple-system, sans-serif;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
   background: var(--space-deepest);
   color: var(--text-1);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* ── Scrollbars ─────────────────────────────── */
@@ -264,10 +269,11 @@ body {
 
 .sidebar-brand-name {
   font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  font-size: 18px;
+  font-weight: 800;
+  font-size: 20px;
   color: var(--text-1);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  text-transform: tracking-tighter;
   flex: 1;
 }
 
@@ -897,9 +903,9 @@ body {
 
 .suggestion-card:hover {
   background: var(--space-hover);
-  border-color: var(--space-border2);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 28px rgba(99, 102, 241, 0.15);
+  border-color: rgba(139, 92, 246, 0.4);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.2), 0 0 0 1px rgba(139, 92, 246, 0.1);
 }
 
 .suggestion-icon {
@@ -997,16 +1003,20 @@ body {
 }
 
 .msg.user .msg-bubble {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(139, 92, 246, 0.16));
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(139, 92, 246, 0.25));
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-bottom-right-radius: 4px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 .msg.ai .msg-bubble {
-  background: var(--space-card);
-  border: 1px solid var(--space-border);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-bdr);
   border-bottom-left-radius: 4px;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-glow-purple);
 }
 
 .msg-time {

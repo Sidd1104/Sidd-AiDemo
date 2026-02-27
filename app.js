@@ -21,7 +21,7 @@ let recognition = null;
 
 // Load persisted system prompt
 (function loadSystemPrompt() {
-  customSystemPrompt = localStorage.getItem('sidd-system-prompt') || '';
+  customSystemPrompt = localStorage.getItem('sharp-system-prompt') || '';
 })();
 
 // ─────────────────────────────────────────────
@@ -204,11 +204,11 @@ function toggleTheme() {
   const html = document.documentElement;
   const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
   html.dataset.theme = next;
-  localStorage.setItem('sidd-theme', next);
+  localStorage.setItem('sharp-theme', next);
   showToast(`Switched to ${next} mode`, 'info', next === 'dark' ? '🌙' : '☀️');
 }
 (function applyStoredTheme() {
-  const saved = localStorage.getItem('sidd-theme');
+  const saved = localStorage.getItem('sharp-theme');
   if (saved) document.documentElement.dataset.theme = saved;
 })();
 
@@ -499,7 +499,7 @@ function appendImageMessage(imgUrl, prompt) {
 function downloadImage(url, name) {
   const a = document.createElement('a');
   a.href = url;
-  a.download = (name || 'sidd-ai-image') + '.png';
+  a.download = (name || 'sharp-ai-image') + '.png';
   a.target = '_blank';
   a.click();
   showToast('Downloading image…', 'info', '⬇️');
@@ -1072,10 +1072,10 @@ function clearSystemPrompt() {
 function exportChat() {
   if (!chatHistory.length) { showToast('No messages to export', 'info', '📄'); return; }
   const lines = chatHistory.map(m => `[${m.role.toUpperCase()}]\n${m.content}`).join('\n\n---\n\n');
-  const blob = new Blob([`Sidd-AI Chat Export\n${'='.repeat(40)}\n\n${lines}`], { type: 'text/plain' });
+  const blob = new Blob([`Sharp AI Chat Export\n${'='.repeat(40)}\n\n${lines}`], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `sidd-ai-chat-${Date.now()}.txt`;
+  a.href = url; a.download = `Sharp AI-chat-${Date.now()}.txt`;
   a.click(); URL.revokeObjectURL(url);
   showToast('Chat exported!', 'success', '📥');
 }
@@ -1104,15 +1104,15 @@ function getDemoReply(question) {
     return `✨ **Cosmic Knowledge**\n\nThe universe is estimated to be **13.8 billion years old**, born from the Big Bang — a singularity of infinite density that expanded into everything we see today.\n\nBlack holes form when massive stars (at least **20× the mass of our Sun**) exhaust their nuclear fuel and collapse under gravity, creating a region where escape velocity exceeds the speed of light.\n\nOur Moon formed ~4.5 billion years ago from the debris of a Mars-sized body colliding with early Earth. 🌙\n\n*Connect to the backend with a Groq API key for real AI responses!*`;
   }
   if (q.includes('code') || q.includes('python') || q.includes('javascript') || q.includes('function') || q.includes('api')) {
-    return `💻 **Code Assistant**\n\nHere's a quick example:\n\n\`\`\`python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get("/hello/{name}")\nasync def greet(name: str):\n    return {"message": f"Hello, {name}! From Sidd-AI 🚀"}\n\nif __name__ == "__main__":\n    import uvicorn\n    uvicorn.run(app, host="0.0.0.0", port=8000)\n\`\`\`\n\nThis creates a REST API endpoint at \`GET /hello/{name}\`. Run with \`uvicorn main:app --reload\`.\n\n*This is demo mode. Connect to the backend for real ${currentModel} responses!*`;
+    return `💻 **Code Assistant**\n\nHere's a quick example:\n\n\`\`\`python\nfrom fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get("/hello/{name}")\nasync def greet(name: str):\n    return {"message": f"Hello, {name}! From Sharp AI 🚀"}\n\nif __name__ == "__main__":\n    import uvicorn\n    uvicorn.run(app, host="0.0.0.0", port=8000)\n\`\`\`\n\nThis creates a REST API endpoint at \`GET /hello/{name}\`. Run with \`uvicorn main:app --reload\`.\n\n*This is demo mode. Connect to the backend for real ${currentModel} responses!*`;
   }
   if (q.includes('quantum')) {
-    return `⚛️ **Quantum Computing**\n\nQuantum computers use **qubits** instead of classical bits. While a bit is either 0 or 1, a qubit can be in **superposition** — both 0 and 1 simultaneously.\n\n**Key concepts:**\n- **Superposition**: A qubit exists in multiple states at once\n- **Entanglement**: Two qubits can be correlated regardless of distance\n- **Interference**: Quantum states can amplify correct answers\n\nThis makes quantum computers exponentially faster for specific problems like cryptography, drug discovery, and optimization.\n\n*Sidd-AI demo mode — connect to backend for full responses!*`;
+    return `⚛️ **Quantum Computing**\n\nQuantum computers use **qubits** instead of classical bits. While a bit is either 0 or 1, a qubit can be in **superposition** — both 0 and 1 simultaneously.\n\n**Key concepts:**\n- **Superposition**: A qubit exists in multiple states at once\n- **Entanglement**: Two qubits can be correlated regardless of distance\n- **Interference**: Quantum states can amplify correct answers\n\nThis makes quantum computers exponentially faster for specific problems like cryptography, drug discovery, and optimization.\n\n*Sharp AI demo mode — connect to backend for full responses!*`;
   }
   if (q.includes('table') || q.includes('markdown')) {
-    return `📊 **Markdown Table Example**\n\nHere's a table of the planets:\n\n| Planet | Distance (AU) | Type | Moons |\n|--------|--------------|------|-------|\n| Mercury | 0.39 | Rocky | 0 |\n| Venus | 0.72 | Rocky | 0 |\n| Earth | 1.00 | Rocky | 1 |\n| Mars | 1.52 | Rocky | 2 |\n| Jupiter | 5.20 | Gas Giant | 95 |\n| Saturn | 9.58 | Gas Giant | 146 |\n\nSidd-AI renders **full GFM markdown** including tables, code blocks, headings, and lists! 🌟`;
+    return `📊 **Markdown Table Example**\n\nHere's a table of the planets:\n\n| Planet | Distance (AU) | Type | Moons |\n|--------|--------------|------|-------|\n| Mercury | 0.39 | Rocky | 0 |\n| Venus | 0.72 | Rocky | 0 |\n| Earth | 1.00 | Rocky | 1 |\n| Mars | 1.52 | Rocky | 2 |\n| Jupiter | 5.20 | Gas Giant | 95 |\n| Saturn | 9.58 | Gas Giant | 146 |\n\nSharp AI renders **full GFM markdown** including tables, code blocks, headings, and lists! 🌟`;
   }
-  return `🌟 **Sidd-AI Response** *(Demo Mode)*\n\nThank you for your question! I'm currently running in demo mode without a live backend connection.\n\nTo get real AI responses powered by **${currentModel}**, make sure:\n1. The backend server is running (\`node server.js\`)\n2. Your Groq API key is in \`server/.env\`\n3. Visit \`http://localhost:3001\`\n\nTry asking about:\n- 🌌 Space & astronomy\n- 💻 Code & programming\n- ⚛️ Quantum computing\n- 📊 Markdown tables\n\nThe shooting stars are real though — you're chatting under the cosmos! 🌠`;
+  return `🌟 **Sharp AI Response** *(Demo Mode)*\n\nThank you for your question! I'm currently running in demo mode without a live backend connection.\n\nTo get real AI responses powered by **${currentModel}**, make sure:\n1. The backend server is running (\`node server.js\`)\n2. Your Groq API key is in \`server/.env\`\n3. Visit \`http://localhost:3001\`\n\nTry asking about:\n- 🌌 Space & astronomy\n- 💻 Code & programming\n- ⚛️ Quantum computing\n- 📊 Markdown tables\n\nThe shooting stars are real though — you're chatting under the cosmos! 🌠`;
 }
 
 // ─────────────────────────────────────────────

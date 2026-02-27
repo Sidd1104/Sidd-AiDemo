@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pricing — Sidd-AI</title>
+    <title>Pricing — Sharp AI</title>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="platform.css" />
@@ -44,7 +44,7 @@
             <div class="tier-card">
                 <div class="tier-name">Free</div>
                 <div class="tier-price">$0<span>/mo</span></div>
-                <p class="tier-desc">Perfect for trying out Sidd-AI. No credit card required.</p>
+                <p class="tier-desc">Perfect for trying out Sharp AI. No credit card required.</p>
                 <ul class="tier-features">
                     <li><span class="ck">✓</span>20 AI messages / day</li>
                     <li><span class="ck">✓</span>1 active bot</li>
@@ -92,7 +92,7 @@
                     <li><span class="ck">✓</span>99.9% uptime SLA</li>
                 </ul>
                 <button class="cta-btn cta-ghost" style="width:100%;justify-content:center"
-                    onclick="showToast('Contact us at hello@sidd-ai.io','info','📧')">Contact Sales →</button>
+                    onclick="showToast('Contact us at hello@sharp-ai.io','info','📧')">Contact Sales →</button>
             </div>
 
         </div>
@@ -107,13 +107,14 @@
     </div>
 
     <div id="toastContainer" class="toast-container"></div>
-    <script src="platform.js"></script>
+    <script type="module" src="platform.js"></script>
+    <script src="animation.js"></script>
     <script>
         const FAQS = [
             { q: 'What is BYOK?', a: 'BYOK = Bring Your Own Key. You can connect your own OpenAI or Anthropic API key and we will route your bot\'s messages through it with zero markup — you only pay the provider\'s rate.' },
             { q: 'Does the free balance expire?', a: 'No. Any prepaid balance you add never expires. You can top up anytime and use it at your own pace.' },
             { q: 'What happens when my balance hits $0?', a: 'Your bots automatically pause. They don\'t error — they just stop responding until you top up. You\'ll get an email notification before this happens.' },
-            { q: 'Can I sell my bot on the marketplace?', a: 'Yes! Build your bot, submit it to the marketplace, and earn $Snappy every time someone installs your template.' },
+            { q: 'Can I sell my bot on the marketplace?', a: 'Yes! Build your bot, submit it to the marketplace, and earn $Sharp every time someone installs your template.' },
             { q: 'Is Telegram / Discord integration free?', a: 'Absolutely. All channel integrations are free always. You only pay for the AI messages your bot generates.' },
             { q: 'What AI models are supported?', a: 'GPT-4o (OpenAI), Claude 3.5 (Anthropic), Gemini 1.5 (Google), Llama 3 (Meta via Groq), and Mixtral (Mistral). Mix and match per bot.' },
         ];

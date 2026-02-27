@@ -1,5 +1,5 @@
 /**
- * Aifredo AI Chat Platform — Backend Server
+ * Sharp AI Platform — Backend Server
  * Supports: OpenAI · Anthropic · Google Gemini · Groq (Llama 3)
  * Streaming: Server-Sent Events (SSE)
  */
@@ -18,6 +18,7 @@ const rateLimit = require('express-rate-limit');
 // ── AI SDK Imports ────────────────────────────────────────────────────────────
 
 let openaiClient, anthropicClient, googleClient, groqClient;
+const WhatsApp = require('./whatsapp-handler');
 
 try {
     const OpenAI = require('openai');
@@ -72,9 +73,9 @@ app.use(express.static(FRONTEND_DIR, { index: 'index.html' }));
 
 // Rate limiting — prevent abuse
 const chatLimiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    max: 30,
-    message: { error: 'Too many requests. Please slow down.' },
+    windowMs: 60 * 1000,
+    max: 1000,
+    skip: () => true // Definitely skip all local limiting
 });
 
 // ── In-Memory Session Store ───────────────────────────────────────────────────
@@ -108,25 +109,52 @@ const MODEL_ROUTES = {
     'claude-3.5': { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022' },
     'claude-3': { provider: 'anthropic', model: 'claude-3-haiku-20240307' },
     // Google
+    'gemini-2.0': { provider: 'google', model: 'gemini-2.0-flash' },
+    'gemini-2.5': { provider: 'google', model: 'gemini-2.5-flash' },
     'gemini-1.5': { provider: 'google', model: 'gemini-1.5-flash' },
-    'gemini-pro': { provider: 'google', model: 'gemini-1.5-pro' },
+    'gemini-1.5-pro': { provider: 'google', model: 'gemini-1.5-pro' },
+    'gemini-pro': { provider: 'google', model: 'gemini-2.0-flash' }, // Default to 2.0-flash
     // Groq (Llama)
-    'llama-3': { provider: 'groq', model: 'llama-3.1-70b-versatile' },
+    'llama-3': { provider: 'groq', model: 'llama-3.3-70b-versatile' },
     'llama-3-small': { provider: 'groq', model: 'llama-3.1-8b-instant' },
     'mixtral': { provider: 'groq', model: 'mixtral-8x7b-32768' },
 };
 
 function resolveModel(displayName) {
-    const name = (displayName || '').toLowerCase();
-    // Try direct key match first
-    for (const [key, val] of Object.entries(MODEL_ROUTES)) {
-        if (name.includes(key)) return val;
+    const name = (displayName || '').toLowerCase().replace(/\s+/g, '-');
+
+    // Helper to check if a provider is actually ready
+    const isReady = (p) => {
+        if (p === 'openai') return !!openaiClient;
+        if (p === 'anthropic') return !!anthropicClient;
+        if (p === 'google') return !!googleClient;
+        if (p === 'groq') return !!groqClient;
+        return false;
+    };
+
+    // 1. Direct match
+    if (MODEL_ROUTES[name] && isReady(MODEL_ROUTES[name].provider)) {
+        return MODEL_ROUTES[name];
     }
-    // Fallback priority: groq → google → openai → anthropic
+
+    // 2. Specific case: "Gemini 1.5 Pro" -> "gemini-1.5-pro"
+    if (name.includes('gemini') && name.includes('pro') && isReady('google')) {
+        return MODEL_ROUTES['gemini-pro'];
+    }
+
+    // 3. Partial match
+    for (const [key, val] of Object.entries(MODEL_ROUTES)) {
+        if ((name.includes(key) || key.includes(name)) && isReady(val.provider)) {
+            return val;
+        }
+    }
+
+    // 4. Fallback priority
     if (groqClient) return MODEL_ROUTES['llama-3'];
-    if (googleClient) return MODEL_ROUTES['gemini-1.5'];
+    if (googleClient) return MODEL_ROUTES['gemini-2.0'] || MODEL_ROUTES['gemini-1.5'];
     if (openaiClient) return MODEL_ROUTES['gpt-4o'];
     if (anthropicClient) return MODEL_ROUTES['claude-3.5'];
+
     return null;
 }
 
@@ -135,7 +163,7 @@ function resolveModel(displayName) {
 const ALL_MODELS = [
     { id: 'GPT-4o', provider: 'OpenAI', gradient: 'linear-gradient(135deg,#6366f1,#8b5cf6)', tier: 'Pro', available: !!openaiClient },
     { id: 'Claude 3.5', provider: 'Anthropic', gradient: 'linear-gradient(135deg,#f59e0b,#f97316)', tier: 'Pro', available: !!anthropicClient },
-    { id: 'Gemini 1.5', provider: 'Google', gradient: 'linear-gradient(135deg,#10b981,#06b6d4)', tier: 'New', available: !!googleClient },
+    { id: 'Gemini 2.0', provider: 'Google', gradient: 'linear-gradient(135deg,#10b981,#06b6d4)', tier: 'New', available: !!googleClient },
     { id: 'Llama 3', provider: 'Groq/Meta', gradient: 'linear-gradient(135deg,#ec4899,#8b5cf6)', tier: 'Free', available: !!groqClient },
 ];
 
@@ -144,7 +172,7 @@ const ALL_MODELS = [
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'ok',
-        version: '1.0.0',
+        version: '1.2.0',
         providers: {
             openai: !!openaiClient,
             anthropic: !!anthropicClient,
@@ -153,6 +181,21 @@ app.get('/api/health', (req, res) => {
         },
         models: ALL_MODELS,
         sessionCount: sessions.size,
+    });
+});
+
+// ── Configuration Endpoints ───────────────────────────────────────────────────
+
+app.get('/api/config/firebase', (req, res) => {
+    // Return only the public web config
+    res.json({
+        apiKey: process.env.FIREBASE_API_KEY,
+        authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.FIREBASE_APP_ID,
+        measurementId: process.env.FIREBASE_MEASUREMENT_ID
     });
 });
 
@@ -236,7 +279,7 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
     };
 
     // System message
-    const systemMsg = systemPrompt || `You are Aifredo, a helpful AI assistant. Today's date is ${new Date().toDateString()}. Be concise, accurate, and helpful. Use markdown formatting where appropriate.`;
+    const systemMsg = systemPrompt || `You are Sharp AI, a powerful and helpful AI assistant. Today's date is ${new Date().toDateString()}. Be concise, accurate, and professional. Use markdown formatting where appropriate.`;
 
     // Build message history for context (last 20 messages)
     const historyMessages = session.messages.slice(-20);
@@ -287,7 +330,10 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
 
             // ── Google Gemini ─────────────────────────────────────────────────────
             case 'google': {
-                const genModel = googleClient.getGenerativeModel({ model: route.model });
+                const genModel = googleClient.getGenerativeModel({
+                    model: route.model,
+                    systemInstruction: systemMsg ? { parts: [{ text: systemMsg }] } : undefined
+                });
 
                 // Build Gemini chat history (alternating user/model)
                 const geminiHistory = [];
@@ -302,13 +348,36 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
                 const chat = genModel.startChat({
                     history: geminiHistory,
                     generationConfig: { maxOutputTokens: 2048, temperature: 0.7 },
-                    systemInstruction: { parts: [{ text: systemMsg }] },
                 });
 
                 const result = await chat.sendMessageStream(message);
+                let hasTokens = false;
                 for await (const chunk of result.stream) {
-                    const text = chunk.text();
-                    if (text) sendChunk(text);
+                    try {
+                        const text = chunk.text();
+                        if (text) {
+                            sendChunk(text);
+                            hasTokens = true;
+                        }
+                    } catch (e) {
+                        console.warn('[Gemini Stream] Parsing error or safety block:', e.message);
+                        if (e.message.includes('SAFETY')) {
+                            sendError('Blocked by safety filters.');
+                            return;
+                        }
+                    }
+                }
+                if (!hasTokens) {
+                    // Try to get response text if stream was blocked/empty but not errored
+                    try {
+                        const response = await result.response;
+                        const text = response.text();
+                        if (text) sendChunk(text);
+                        else sendError('Gemini returned an empty response.');
+                    } catch (e) {
+                        sendError(`Gemini error: ${e.message}`);
+                    }
+                    return;
                 }
                 sendDone();
                 break;
@@ -340,20 +409,103 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
     } catch (err) {
         console.error(`[${route.provider}] Error:`, err.message);
 
-        // Friendly error messages
         if (err.status === 401 || err.code === 'invalid_api_key') {
             sendError('Invalid API key. Please check your .env file and restart the server.');
-        } else if (err.status === 429) {
-            sendError('Rate limit exceeded. Please wait a moment and try again.');
+        } else if (err.status === 429 || err.message?.includes('429') || err.message?.includes('quota')) {
+            sendError(`${route.provider.toUpperCase()} Rate Limit: You have reached the limit for this API key. Please wait or upgrade your plan.`);
         } else if (err.status === 402) {
-            sendError('Insufficient credits on this API key. Please top up your account.');
+            sendError(`${route.provider.toUpperCase()} Billing Error: Insufficient credits on this API key.`);
         } else if (err.message?.includes('SAFETY')) {
             sendError('The response was blocked by content safety filters.');
         } else {
-            sendError(`AI error: ${err.message}`);
+            sendError(`${route.provider.toUpperCase()} error: ${err.message}`);
         }
     }
 });
+
+// ── WhatsApp Endpoints ───────────────────────────────────────────────────────
+
+app.get('/api/whatsapp/status', (req, res) => {
+    res.json(WhatsApp.getWAStatus());
+});
+
+app.get('/api/whatsapp/qr', async (req, res) => {
+    const qr = await WhatsApp.getQrDataURL();
+    if (qr) res.json({ qr });
+    else res.status(404).json({ error: 'QR not available' });
+});
+
+app.post('/api/whatsapp/pair', async (req, res) => {
+    const { number } = req.body;
+    if (!number) return res.status(400).json({ error: 'Phone number required' });
+
+    try {
+        const result = await WhatsApp.requestPairingCode(number);
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/whatsapp/connect', async (req, res) => {
+    const { botId } = req.body;
+
+    // Initialize WA with a callback that uses the specified bot
+    WhatsApp.initWhatsApp(async (message, sender) => {
+        // Find the bot configuration (simplified as we don't have a DB here, use sessions or a placeholder)
+        // For now, use a general session
+        const session = getSession(`wa-${sender}`);
+        session.messages.push({ role: 'user', content: message });
+        const response = await getAIResponse(message, 'Llama 3', session.messages.slice(0, -1), "You are Sharp AI on WhatsApp.");
+        session.messages.push({ role: 'assistant', content: response });
+        return response;
+    });
+
+    res.json({ success: true, message: 'WhatsApp initialization started' });
+});
+
+app.post('/api/whatsapp/disconnect', async (req, res) => {
+    const success = await WhatsApp.logoutWhatsApp();
+    res.json({ success });
+});
+
+/**
+ * Reusable AI Completion Helper (Non-SSE)
+ */
+async function getAIResponse(message, modelName, history = [], systemPrompt = "") {
+    const route = resolveModel(modelName);
+    if (!route) return "AI provider not available.";
+
+    const systemMsg = systemPrompt || "You are Sharp AI assistant.";
+    const historyMsgs = history.slice(-10);
+
+    try {
+        if (route.provider === 'openai') {
+            const completion = await openaiClient.chat.completions.create({
+                model: route.model,
+                messages: [{ role: 'system', content: systemMsg }, ...historyMsgs, { role: 'user', content: message }],
+            });
+            return completion.choices[0].message.content;
+        } else if (route.provider === 'google') {
+            const genModel = googleClient.getGenerativeModel({ model: route.model, systemInstruction: { parts: [{ text: systemMsg }] } });
+            const chat = genModel.startChat({
+                history: historyMsgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }))
+            });
+            const result = await chat.sendMessage(message);
+            return result.response.text();
+        } else if (route.provider === 'groq') {
+            const completion = await groqClient.chat.completions.create({
+                model: route.model,
+                messages: [{ role: 'system', content: systemMsg }, ...historyMsgs, { role: 'user', content: message }],
+            });
+            return completion.choices[0].message.content;
+        }
+    } catch (e) {
+        console.error('[AI Helper Error]', e.message);
+        return `Error: ${e.message}`;
+    }
+    return "Unsupported provider.";
+}
 
 // ── Wallet Verification ───────────────────────────────────────────────────────
 
@@ -497,12 +649,29 @@ app.delete('/api/bots/:id', (req, res) => {
 });
 
 // POST /api/bots/:id/channels/telegram — connect Telegram
-app.post('/api/bots/:id/channels/telegram', (req, res) => {
+app.post('/api/bots/:id/channels/telegram', async (req, res) => {
     const bot = getBotOrFail(req, res); if (!bot) return;
     const { token } = req.body;
     if (!token || !token.match(/^\d+:.{20,}$/)) {
         return res.status(400).json({ error: 'Invalid Telegram bot token format' });
     }
+
+    // Deploy to telegram
+    const telegramHandler = require('./telegram-handler');
+    const success = await telegramHandler.startTelegramBot(bot.id, token, async (text, senderId) => {
+        const session = getSession(`${bot.id}-${senderId}`);
+        session.messages.push({ role: 'user', content: text });
+        const response = await getAIResponse(text, bot.model, session.messages.slice(0, -1), bot.systemPrompt || `You are ${bot.name}.`);
+        session.messages.push({ role: 'assistant', content: response });
+        bot.messageCount = (bot.messageCount || 0) + 1;
+        botsStore.set(bot.id, bot);
+        return response;
+    });
+
+    if (!success) {
+        return res.status(500).json({ error: 'Failed to deploy Telegram bot. Check your token.' });
+    }
+
     bot.channels.telegram = { connected: true, token, connectedAt: Date.now() };
     bot.updatedAt = Date.now();
     botsStore.set(bot.id, bot);
@@ -659,7 +828,24 @@ app.get('/api/auth/me', (req, res) => {
     if (!token || !authTokens.has(token)) return res.status(401).json({ error: 'Not authenticated.' });
     const user = usersStore.get(authTokens.get(token));
     if (!user) return res.status(401).json({ error: 'User not found.' });
-    res.json({ id: user.id, name: user.name, email: user.email, createdAt: user.createdAt });
+    res.json({ id: user.id, name: user.name, email: user.email, createdAt: user.createdAt, bio: user.bio || '' });
+});
+
+// PUT /api/auth/me
+app.put('/api/auth/me', (req, res) => {
+    const token = bearerToken(req);
+    if (!token || !authTokens.has(token)) return res.status(401).json({ error: 'Not authenticated.' });
+    const userId = authTokens.get(token);
+    const user = usersStore.get(userId);
+    if (!user) return res.status(401).json({ error: 'User not found.' });
+
+    const { name, bio } = req.body;
+    if (name) user.name = name.trim().slice(0, 100);
+    if (bio !== undefined) user.bio = (bio || '').slice(0, 500);
+
+    usersStore.set(userId, user);
+    console.log(`[Auth] Profile Update: ${user.email}`);
+    res.json({ id: user.id, name: user.name, email: user.email, bio: user.bio, updatedAt: Date.now() });
 });
 
 // ── Catch-All: Serve any file from frontend dir (multi-page support) ──────────
@@ -684,23 +870,27 @@ app.use((req, res) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 
-app.listen(PORT, () => {
-    console.log('\n╔══════════════════════════════════════════╗');
-    console.log('║       Aifredo Backend — Running          ║');
-    console.log('╠══════════════════════════════════════════╣');
-    console.log(`║  Server : http://localhost:${PORT}           ║`);
-    console.log(`║  Health : http://localhost:${PORT}/api/health ║`);
-    console.log('╠══════════════════════════════════════════╣');
-    console.log(`║  OpenAI   : ${openaiClient ? '✅ Ready   ' : '❌ No key  '}                  ║`);
-    console.log(`║  Anthropic: ${anthropicClient ? '✅ Ready   ' : '❌ No key  '}                  ║`);
-    console.log(`║  Google   : ${googleClient ? '✅ Ready   ' : '❌ No key  '}                  ║`);
-    console.log(`║  Groq     : ${groqClient ? '✅ Ready   ' : '❌ No key  '}                  ║`);
-    console.log('╚══════════════════════════════════════════╝\n');
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log('\n╔══════════════════════════════════════════╗');
+        console.log('║       Sharp AI Backend — Running         ║');
+        console.log('╠══════════════════════════════════════════╣');
+        console.log(`║  Server : http://localhost:${PORT}           ║`);
+        console.log(`║  Health : http://localhost:${PORT}/api/health ║`);
+        console.log('╠══════════════════════════════════════════╣');
+        console.log(`║  OpenAI   : ${openaiClient ? '✅ Ready   ' : '❌ No key  '}                  ║`);
+        console.log(`║  Anthropic: ${anthropicClient ? '✅ Ready   ' : '❌ No key  '}                  ║`);
+        console.log(`║  Google   : ${googleClient ? '✅ Ready   ' : '❌ No key  '}                  ║`);
+        console.log(`║  Groq     : ${groqClient ? '✅ Ready   ' : '❌ No key  '}                  ║`);
+        console.log('╚══════════════════════════════════════════╝\n');
 
-    const anyReady = openaiClient || anthropicClient || googleClient || groqClient;
-    if (!anyReady) {
-        console.warn('⚠️  No API keys configured!');
-        console.warn('   Copy .env.example → .env and add at least one API key.');
-        console.warn('   Groq (Llama 3) and Google Gemini are FREE to start.\n');
-    }
-});
+        const anyReady = openaiClient || anthropicClient || googleClient || groqClient;
+        if (!anyReady) {
+            console.warn('⚠️  No API keys configured!');
+            console.warn('   Copy .env.example → .env and add at least one API key.');
+            console.warn('   Groq (Llama 3) and Google Gemini are FREE to start.\n');
+        }
+    });
+}
+
+module.exports = { app, resolveModel, MODEL_ROUTES };
