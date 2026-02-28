@@ -12,17 +12,23 @@ async function startTelegramBot(botId, token, aiCallback) {
         const bot = new TelegramBot(token, { polling: true });
 
         // Remove any existing webhook to ensure polling works without Conflicts
-        await bot.deleteWebHook().catch(err => console.error('[Telegram] Failed to delete webhook:', err.message));
+        bot.deleteWebHook().catch(err => console.error('[Telegram] Failed to delete webhook:', err.message));
 
-        // Auto-message when connected (to the most recent chat ID, if available)
+        // Let's attempt to send "i am active sir ...." to recent chats immediately upon startup
         try {
-            const updates = await bot.getUpdates({ limit: 1, offset: -1 });
-            if (updates && updates.length > 0 && updates[0].message) {
-                const lastChatId = updates[0].message.chat.id;
-                await bot.sendMessage(lastChatId, `🚀 *Sharp AI Bot connected successfully!*\n\nI am now online and ready to assist you.`, { parse_mode: 'Markdown' });
+            const updates = await bot.getUpdates({ limit: 10, timeout: 0 });
+            if (updates && updates.length > 0) {
+                const chatIds = new Set();
+                updates.forEach(u => {
+                    if (u.message && u.message.chat && u.message.chat.id) chatIds.add(u.message.chat.id);
+                });
+                const msgText = "i am active sir ....";
+                chatIds.forEach(id => {
+                    bot.sendMessage(id, msgText).catch(e => console.error('[Telegram] Auto-welcome error:', e.message));
+                });
             }
         } catch (err) {
-            console.warn('[Telegram] Auto-welcome failed (no recent chats found):', err.message);
+            console.error('[Telegram] Could not fetch getUpdates for welcome message:', err.message);
         }
 
         bot.on('message', async (msg) => {
@@ -30,7 +36,7 @@ async function startTelegramBot(botId, token, aiCallback) {
             const text = msg.text || '';
 
             if (text === '/start') {
-                return bot.sendMessage(chatId, `🚀 *Sharp AI Bot is online!*\n\nThis is an auto-message. I am ready to receive your instructions and I will reply using my configured AI brain.`, { parse_mode: 'Markdown' }).catch(err => console.error('[Telegram] Error sending start message:', err.message));
+                return bot.sendMessage(chatId, `i am active sir ....`).catch(err => console.error('[Telegram] Error sending start message:', err.message));
             }
 
             if (text) {
@@ -56,11 +62,12 @@ async function startTelegramBot(botId, token, aiCallback) {
         });
 
         activeBots.set(botId, bot);
-        console.log(`[Telegram] Bot started for ${botId}`);
-        return true;
+        const me = await bot.getMe();
+        console.log(`[Telegram] Bot started for ${botId} (@${me.username})`);
+        return { success: true, username: me.username };
     } catch (err) {
         console.error(`[Telegram] Failed to start bot for ${botId}:`, err);
-        return false;
+        return { success: false };
     }
 }
 

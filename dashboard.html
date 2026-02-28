@@ -972,8 +972,9 @@
 
         window.openDeleteFromDetail = function () {
             const name = document.getElementById('detailName').textContent;
+            const targetId = activeDetailBotId;
             closeDetail();
-            openDelete(activeDetailBotId, name);
+            openDelete(targetId, name);
         }
 
         window.toggleActive = async function (id) {

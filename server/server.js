@@ -423,6 +423,19 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
     }
 });
 
+// ── Universal QR Generator ───────────────────────────────────────────────────
+app.get('/api/qr', async (req, res) => {
+    const { data } = req.query;
+    if (!data) return res.status(400).json({ error: 'Data query parameter is required' });
+    try {
+        const qrcode = require('qrcode');
+        const qr = await qrcode.toDataURL(data, { margin: 2, scale: 8 });
+        res.json({ qr });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to generate QR code' });
+    }
+});
+
 // ── WhatsApp Endpoints ───────────────────────────────────────────────────────
 
 app.get('/api/whatsapp/status', (req, res) => {
@@ -650,15 +663,33 @@ app.delete('/api/bots/:id', (req, res) => {
 
 // POST /api/bots/:id/channels/telegram — connect Telegram
 app.post('/api/bots/:id/channels/telegram', async (req, res) => {
-    const bot = getBotOrFail(req, res); if (!bot) return;
-    const { token } = req.body;
+    const { token, name, model, systemPrompt } = req.body;
+    let bot = botsStore.get(req.params.id);
+
+    // If the backend restarted, the in-memory botsStore might be empty.
+    // Create a temporary bot config from the payload so it can still connect.
+    if (!bot) {
+        bot = {
+            id: req.params.id,
+            name: name || 'Bot',
+            model: model || 'Llama 3',
+            systemPrompt: systemPrompt || 'You are a helpful AI assistant.',
+            channels: {},
+            messageCount: 0,
+            active: true,
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        };
+        botsStore.set(bot.id, bot);
+    }
+
     if (!token || !token.match(/^\d+:.{20,}$/)) {
         return res.status(400).json({ error: 'Invalid Telegram bot token format' });
     }
 
     // Deploy to telegram
     const telegramHandler = require('./telegram-handler');
-    const success = await telegramHandler.startTelegramBot(bot.id, token, async (text, senderId) => {
+    const result = await telegramHandler.startTelegramBot(bot.id, token, async (text, senderId) => {
         const session = getSession(`${bot.id}-${senderId}`);
         session.messages.push({ role: 'user', content: text });
         const response = await getAIResponse(text, bot.model, session.messages.slice(0, -1), bot.systemPrompt || `You are ${bot.name}.`);
@@ -668,15 +699,16 @@ app.post('/api/bots/:id/channels/telegram', async (req, res) => {
         return response;
     });
 
-    if (!success) {
+    if (!result || !result.success) {
         return res.status(500).json({ error: 'Failed to deploy Telegram bot. Check your token.' });
     }
 
-    bot.channels.telegram = { connected: true, token, connectedAt: Date.now() };
+    const botUrl = `https://t.me/${result.username}?start=connect`;
+    bot.channels.telegram = { connected: true, token, botUrl, connectedAt: Date.now() };
     bot.updatedAt = Date.now();
     botsStore.set(bot.id, bot);
-    console.log(`[Bot/${bot.id}] Telegram connected`);
-    res.json({ connected: true, channel: 'telegram' });
+    console.log(`[Bot/${bot.id}] Telegram connected: ${botUrl}`);
+    res.json({ connected: true, channel: 'telegram', botUrl });
 });
 
 // POST /api/bots/:id/channels/discord — connect Discord webhook
