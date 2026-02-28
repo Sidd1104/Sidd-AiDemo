@@ -63,10 +63,17 @@
                 <button class="modal-close" onclick="closeInstall()">✕</button>
             </div>
             <p class="modal-desc" id="installModalDesc"></p>
+            <div style="margin-top: 16px;">
+                <label
+                    style="display:block; font-size:14px; font-weight:600; margin-bottom:8px; color:var(--text-2);">Name
+                    Your Bot <span style="color:#ef4444;">*</span></label>
+                <input type="text" id="botNameInput" class="form-input" placeholder="e.g. My Awesome Template Bot"
+                    style="width:100%; border-color:var(--border); background:rgba(0,0,0,0.2); color:white; padding:10px; border-radius:8px;">
+            </div>
             <div style="display:flex;gap:10px;margin-top:20px">
                 <button class="cta-btn cta-primary" id="installConfirmBtn" style="flex:1">Install &amp; Open Builder
                     →</button>
-                <button class="cta-btn cta-ghost" onclick="closeInstall()" style="flex:1">Cancel</button>
+                <button class="cta-btn cta-ghost" onclick="closeInstall()" style="flex:1">← Back</button>
             </div>
         </div>
     </div>
@@ -117,9 +124,18 @@
             installTmpl = MARKETPLACE_TEMPLATES.find(t => t.id === id);
             if (!installTmpl) return;
             document.getElementById('installModalTitle').textContent = 'Install: ' + installTmpl.name + ' ' + installTmpl.emoji;
-            document.getElementById('installModalDesc').textContent = 'This will open the Bot Builder pre-filled with the "' + installTmpl.name + '" template. You can customize it before launching.';
-            document.getElementById('installConfirmBtn').onclick = () => { window.location.href = 'builder.html?template=' + installTmpl.id; };
+            document.getElementById('installModalDesc').textContent = 'This will open the Bot Builder pre-filled with the "' + installTmpl.name + '" template. Please provide a name for your new bot.';
+            document.getElementById('botNameInput').value = '';
+            document.getElementById('installConfirmBtn').onclick = () => {
+                const bn = document.getElementById('botNameInput').value.trim();
+                if (!bn) {
+                    showToast('Please enter a bot name first!', 'error', '⚠️');
+                    return;
+                }
+                window.location.href = 'builder.html?template=' + installTmpl.id + '&name=' + encodeURIComponent(bn);
+            };
             document.getElementById('installModal').classList.add('open');
+            setTimeout(() => document.getElementById('botNameInput').focus(), 100);
         }
         function closeInstall() { document.getElementById('installModal').classList.remove('open'); }
 

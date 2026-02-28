@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$Sharp Token — The Currency of AI</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="platform.css">
+    <style>
+        .token-hero {
+            text-align: center;
+            padding: 80px 20px 40px;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .token-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(250, 204, 21, 0.1);
+            border: 1px solid rgba(250, 204, 21, 0.3);
+            border-radius: 100px;
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .token-title {
+            font-family: var(--font-title);
+            font-size: clamp(48px, 8vw, 84px);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 30px rgba(251, 191, 36, 0.3));
+        }
+
+        .token-subtitle {
+            font-size: 20px;
+            color: var(--text-2);
+            line-height: 1.6;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .token-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            padding: 40px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .token-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px 32px;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .token-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.5), transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: 0.5;
+            transition: opacity 0.4s;
+        }
+
+        .token-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(250, 204, 21, 0.15);
+        }
+
+        .token-card:hover::before {
+            opacity: 1;
+        }
+
+        .tc-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.2), rgba(244, 63, 94, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(250, 204, 21, 0.3);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .tc-title {
+            font-family: var(--font-title);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+
+        .tc-desc {
+            font-size: 16px;
+            color: var(--text-2);
+            line-height: 1.6;
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            padding: 80px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .faq-title {
+            text-align: center;
+            font-family: var(--font-title);
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 48px;
+            background: linear-gradient(135deg, #fff, var(--text-3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .faq-item:hover {
+            border-color: rgba(250, 204, 21, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .faq-question {
+            padding: 24px;
+            font-family: var(--font-title);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-question::after {
+            content: '+';
+            font-size: 24px;
+            color: var(--gold);
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.open .faq-question::after {
+            transform: rotate(45deg);
+            color: var(--teal);
+        }
+
+        .faq-answer {
+            padding: 0 24px;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--text-2);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .faq-item.open .faq-answer {
+            padding: 0 24px 24px;
+            max-height: 300px;
+            /* generous max-height for animation */
+        }
+
+        .glow-orb {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(250, 204, 21, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+            filter: blur(40px);
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="space-canvas"></canvas>
+    <div id="platformNav"></div>
+    <div class="glow-orb" style="top: -100px; left: 50%; transform: translateX(-50%);"></div>
+
+    <main class="dashboard-wrap" style="padding-top: calc(var(--nav-h) + 60px);">
+        <!-- Hero Section -->
+        <section class="token-hero">
+            <div style="text-align: left; margin-bottom: 24px;">
+                <a href="#" onclick="window.history.back(); return false;"
+                    style="color:var(--text-2);font-size:13px;text-decoration:none">← Back</a>
+            </div>
+            <div class="token-badge">⚡ Utility Token</div>
+            <h1 class="token-title">$Sharp</h1>
+            <p class="token-subtitle">The native currency of the Sharp AI ecosystem. Built on Solana for lightning-fast,
+                zero-friction AI transactions.</p>
+            <div style="display: flex; gap: 16px; justify-content: center;">
+                <a href="#" class="cta-btn cta-primary" style="font-size: 18px; padding: 16px 36px;">Buy $Sharp</a>
+                <a href="#utility" class="cta-btn cta-ghost" style="font-size: 18px; padding: 16px 36px;">View
+                    Utility</a>
+            </div>
+        </section>
+
+        <!-- Utility Grid -->
+        <section id="utility" class="token-grid" style="margin-top: 60px;">
+            <div class="token-card">
+                <div class="tc-icon">🧠</div>
+                <h3 class="tc-title">Pay for API Compute</h3>
+                <p class="tc-desc">Fuel your AI bots across all platforms. Every API call, message sent, and image
+                    generated is seamlessly powered by $Sharp under the hood with near-zero gas fees.</p>
+            </div>
+            <div class="token-card">
+                <div class="tc-icon">💸</div>
+                <h3 class="tc-title">Earn from Your Bots</h3>
+                <p class="tc-desc">Build high-quality templates and list them on the Marketplace. Set your price and
+                    earn $Sharp directly to your wallet every time someone installs your bot.</p>
+            </div>
+            <div class="token-card">
+                <div class="tc-icon">⭐</div>
+                <h3 class="tc-title">Unlock Premium Models</h3>
+                <p class="tc-desc">Stake or spend $Sharp to gain priority access to the newest models like GPT-4o,
+                    Claude 3.5 Sonnet, and Gemini Advanced before anyone else.</p>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <h2 class="faq-title">Frequently Asked Questions</h2>
+            <div id="faqContainer">
+                <div style="text-align: center; color: var(--text-3); padding: 40px;">Loading FAQs...</div>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="platform.js"></script>
+    <script src="animation.js"></script>
+    <script type="module">
+        import { db } from './firebase.js';
+        import { collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // Seed FAQs if missing
+        const DEFAULT_FAQS = [
+            { id: 'faq1', q: 'What is $Sharp used for?', a: '$Sharp is the native currency of the Sharp AI platform. It is used to pay for AI compute (API usage), purchase premium bot templates from the marketplace, and unlock advanced features and models.' },
+            { id: 'faq2', q: 'How can I earn $Sharp?', a: 'You can earn $Sharp by creating high-quality, valuable AI templates and listing them on our Marketplace. When other users install your templates, you earn $Sharp directly to your connected wallet.' },
+            { id: 'faq3', q: 'Is $Sharp built on a blockchain?', a: 'Yes, $Sharp is a utility token built on the Solana blockchain, ensuring lightning-fast transactions, transparent ownership, and incredibly low fees.' },
+            { id: 'faq4', q: 'Do I need to hold $Sharp to use the platform?', a: 'You receive a free tier of compute when you sign up. For heavy usage, deploying multiple bots to production, or accessing enterprise models, you will consume $Sharp.' }
+        ];
+
+        async function initFAQs() {
+            const faqContainer = document.getElementById('faqContainer');
+            try {
+                const qaRef = collection(db, 'faqs');
+                const snap = await getDocs(qaRef);
+
+                let faqs = [];
+                if (snap.empty) {
+                    console.log('Seeding default FAQs to Firestore...');
+                    for (const f of DEFAULT_FAQS) {
+                        await setDoc(doc(db, 'faqs', f.id), f);
+                        faqs.push(f);
+                    }
+                } else {
+                    faqs = snap.docs.map(d => d.data());
+                }
+
+                // Render
+                faqContainer.innerHTML = faqs.map((f, i) => `
+                    <div class="faq-item" onclick="this.classList.toggle('open')">
+                        <div class="faq-question">${f.q}</div>
+                        <div class="faq-answer"><p style="padding-top: 8px;">${f.a}</p></div>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                console.error('Failed to load FAQs:', e);
+                faqContainer.innerHTML = `<div style="text-align:center;color:var(--red)">Failed to load FAQs from securely. Check your connection.</div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initFAQs);
+    </script>
+</body>
+
+</html>

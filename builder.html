@@ -992,227 +992,244 @@
 
     <div class="builder-wrap">
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
-            <a href="dashboard.html" style="color:var(--text-2);font-size:13px;text-decoration:none">← Dashboard</a>
+            <a href="#" onclick="window.history.back(); return false;"
+                style="color:var(--text-2);font-size:13px;text-decoration:none">← Back</a>
         </div>
         <h1 class="builder-title" id="pageTitle">Create Your Bot</h1>
         <p class="builder-sub">Set up your AI bot in 4 steps — no code required.</p>
 
-        <!-- Template Status Bar -->
-        <div class="template-active-bar" id="templateActiveBar">
-            <div class="tmbar-icon" id="tmbarIcon">🤖</div>
-            <div class="tmbar-info">
-                <div class="tmbar-title" id="tmbarTitle">Template Active: Support Pro</div>
-                <div class="tmbar-sub">Settings are locked for consistency. Switch to manual mode for full control.
-                </div>
-            </div>
-            <button class="cta-btn cta-ghost" onclick="cancelTemplate()" style="padding: 8px 16px; font-size: 13px;">🛠️
-                Switch to Manual</button>
-        </div>
-
-        <!-- Step indicators -->
-        <div class="wizard-steps">
-            <div class="wizard-step active" id="ws1" onclick="goStep(1)">1 — Identity</div>
-            <div class="wizard-step" id="ws2" onclick="goStep(2)">2 — AI Brain</div>
-            <div class="wizard-step" id="ws3" onclick="goStep(3)">3 — Knowledge (Optional)</div>
-            <div class="wizard-step" id="ws4" onclick="goStep(4)">4 — Preview</div>
-        </div>
-
-        <!-- STEP 1: Identity -->
-        <div class="wizard-panel show" id="panel1">
-            <div class="form-group">
-                <label class="form-label">Bot Name <span class="label-star">*</span></label>
-                <input class="form-input" id="botName" placeholder="e.g. Support Hero, Sales Max…"
-                    oninput="updatePreview()" />
-            </div>
-            <div class="form-group">
-                <label class="form-label">Avatar Emoji <span>Pick one</span></label>
-                <div class="emoji-grid" id="emojiGrid"></div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Short Description <span>Optional</span></label>
-                <input class="form-input" id="botDesc" placeholder="What does this bot do?" />
-            </div>
-            <div class="form-group">
-                <label class="form-label">Category</label>
-                <select class="form-select" id="botCat">
-                    <option value="support">Customer Support</option>
-                    <option value="sales">Sales</option>
-                    <option value="education">Education</option>
-                    <option value="developer">Developer</option>
-                    <option value="entertainment">Entertainment</option>
-                    <option value="health">Health & Fitness</option>
-                    <option value="finance">Finance</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
-            <div class="wizard-nav">
-                <div></div>
-                <button class="cta-btn cta-primary" onclick="nextStep(1)">Next: AI Brain →</button>
-            </div>
-
-            <!-- Bot Marketplace (Ready-to-Go Templates) -->
-            <div class="form-group" style="margin-top:40px; border-top: 1px solid var(--border); padding-top: 32px;">
-                <label class="form-label">Ready-to-Go Marketplace <span
-                        style="font-size:12px;color:var(--text-3);font-weight:600;">(Optional - skip custom
-                        setup)</span></label>
-                <div class="marketplace-grid" id="marketplaceGrid">
-                    <!-- Templates rendered by JS -->
-                </div>
-            </div>
-        </div>
-
-        <!-- STEP 2: AI Brain -->
-        <div class="wizard-panel" id="panel2">
-            <div class="form-group"
-                style="border: 1px solid var(--border); border-radius: 16px; padding: 24px; background: rgba(255,255,255,0.02);">
-                <label class="form-label" style="font-size: 16px; margin-bottom: 12px;">Define how your bot behaves
-                    <span class="label-star">*</span></label>
-
-                <!-- Ready-made behavior integrated -->
-                <div style="margin-bottom: 20px;">
-                    <label class="form-label" style="font-size: 11px; opacity: 0.7; margin-bottom: 8px;">Quick-Apply
-                        Personality Presets:</label>
-                    <div class="behavior-scroller" id="behaviorScroller">
-                        <!-- Behaviors rendered by JS -->
-                    </div>
-                </div>
-
-                <textarea class="form-textarea" id="systemPrompt" rows="8"
-                    placeholder="You are a helpful assistant named {botName}. You help users with…"
-                    style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);"></textarea>
-                <p class="form-help" style="margin-top:12px; font-size:12px; color:var(--text-3); line-height: 1.5;">
-                    Describe your bot's personality, tone, and specific knowledge limits. Use the presets above to start
-                    fast!</p>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">AI Model</label>
+        <!-- Mode Selection (Step 0) -->
+        <div id="modeSelectionContainer" style="display: none;">
+            <div style="display:flex; flex-direction:column; align-items:center; margin-top: 40px;">
+                <h2 style="font-family:var(--font-title); font-size:28px; margin-bottom: 24px; text-align: center;">How
+                    would you like to start?</h2>
                 <div
-                    style="padding:16px 20px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;display:flex;align-items:center;gap:14px;">
-                    <div id="modelDisplayIcon"
-                        style="width:40px;height:40px;background:linear-gradient(135deg,#7c3aed,#6d28d9);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">
-                        🤗</div>
-                    <div style="flex:1;">
-                        <div id="currentModelName"
-                            style="font-weight:700;font-family:var(--font-title);font-size:14px;color:var(--text);">
-                            HuggingFace (Default)</div>
-                        <div id="currentModelProvider" style="font-size:11px;color:var(--text-3);font-weight:600;">
-                            Open-Source AI</div>
+                    style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 20px; width: 100%; max-width: 800px;">
+                    <div class="marketplace-card" style="text-align: center; padding: 40px 24px;"
+                        onclick="window.location.href='marketplace.html'">
+                        <div style="font-size: 56px; margin-bottom: 20px;">🛍️</div>
+                        <h3
+                            style="font-family:var(--font-title); font-size:20px; font-weight:800; margin-bottom: 12px;">
+                            Ready-to-Go Marketplace</h3>
+                        <p style="color:var(--text-3); font-size:14px; line-height:1.6;">Browse 70+ pre-made templates
+                            for support, sales, developers and more. Install in 1-click.</p>
                     </div>
-                    <button class="cta-btn cta-ghost" onclick="openModelPicker()" type="button"
-                        style="padding:6px 12px;font-size:12px;border-radius:8px;">Change Model</button>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <button class="advanced-settings-trigger" onclick="openTuningSettings()" type="button">
-                    <div class="adv-trigger-icon">🎛️</div>
-                    <div class="adv-trigger-text">
-                        <span class="adv-trigger-title">Advanced Tuning</span>
-                        <span class="adv-trigger-sub">Creativity, response length & style</span>
+                    <div class="marketplace-card" style="text-align: center; padding: 40px 24px;"
+                        onclick="startCustomMode()">
+                        <div style="font-size: 56px; margin-bottom: 20px;">🛠️</div>
+                        <h3
+                            style="font-family:var(--font-title); font-size:20px; font-weight:800; margin-bottom: 12px;">
+                            Custom Bot</h3>
+                        <p style="color:var(--text-3); font-size:14px; line-height:1.6;">Build a bot from scratch. Fully
+                            configure its brain, identity, and advanced knowledge.</p>
                     </div>
-                    <span class="adv-configured-badge" id="tuningBadge" style="display:none">Tuned</span>
-                    <span class="adv-trigger-arrow">→</span>
-                </button>
-            </div>
-
-            <div class="wizard-nav">
-                <button class="cta-btn cta-ghost" onclick="goStep(1)">← Back</button>
-                <button class="cta-btn cta-primary" onclick="nextStep(2)">Next: Knowledge →</button>
-            </div>
-        </div>
-
-        <!-- STEP 3: Knowledge Base (Optional Extension) -->
-        <div class="wizard-panel" id="panel3">
-            <div
-                style="background:rgba(124,58,237,0.1); border:1px solid rgba(124,58,237,0.2); padding:16px; border-radius:12px; margin-bottom:24px;">
-                <h3
-                    style="font-family:var(--font-title); font-size:16px; font-weight:800; color:var(--text); margin-bottom:4px;">
-                    🛠️ Advanced Knowledge Extension</h3>
-                <p style="color:var(--text-3); font-size:12px; font-weight:600;">This page is for custom bots only. Add
-                    files or links to give your AI specialized knowledge.</p>
-            </div>
-            <p style="color:var(--text-2);font-size:14px;margin-bottom:24px"><em>All settings here are optional.</em>
-            </p>
-            <div class="form-group">
-                <label class="form-label">Upload Files <span>.txt, .md, .pdf</span></label>
-                <input type="file" id="kbFileInput" multiple accept=".txt,.md,.pdf" style="display:none"
-                    onchange="addKbFiles(this)" />
-                <button class="cta-btn cta-ghost" onclick="document.getElementById('kbFileInput').click()">📄 Choose
-                    Files</button>
-                <div class="knowledge-items" id="kbFilesList" style="margin-top:14px"></div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Add URL <span>Bot will reference this page</span></label>
-                <div style="display:flex;gap:10px">
-                    <input class="form-input" id="kbUrl" placeholder="https://your-docs.com/page" />
-                    <button class="cta-btn cta-ghost" onclick="addUrl()">Add</button>
-                </div>
-                <div class="knowledge-items" id="kbUrlList" style="margin-top:14px"></div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Manual Q&amp;A</label>
-                <div style="display:flex;flex-direction:column;gap:10px">
-                    <input class="form-input" id="kbQ" placeholder="Question…" />
-                    <input class="form-input" id="kbA" placeholder="Answer…" />
-                    <button class="cta-btn cta-ghost" onclick="addQA()">Add Q&amp;A Pair</button>
-                </div>
-                <div class="knowledge-items" id="kbQaList" style="margin-top:14px"></div>
-            </div>
-            <div class="wizard-nav">
-                <div
-                    style="flex: 1; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-3);">
-                    <span>💡</span> Knowledge Base is currently an <b>Advanced Feature</b>
-                </div>
-                <div style="display:flex; gap:12px;">
-                    <button class="cta-btn cta-ghost" onclick="goStep(2)">← Back</button>
-                    <button class="cta-btn cta-primary" onclick="nextStep(3)">Next: Preview →</button>
                 </div>
             </div>
         </div>
 
-        <!-- STEP 4: Preview & Launch -->
-        <div class="wizard-panel" id="panel4">
-            <div style="display:grid; grid-template-columns: 340px 1fr; gap:32px; align-items: start;">
-                <!-- Summary Column -->
-                <div class="summary-card">
-                    <h3
-                        style="font-family:var(--font-title); font-size:18px; font-weight:800; color:var(--text); margin-bottom:20px; display:flex; align-items:center; gap:10px;">
-                        📋 Bot Specifications</h3>
-                    <div id="botSummary">
-                        <!-- Summary content injected by JS -->
-                    </div>
+        <div id="wizardContainer" style="display: none;">
+            <!-- Step indicators -->
+            <div class="wizard-steps">
+                <div class="wizard-step active" id="ws1" onclick="goStep(1)">1 — Identity</div>
+                <div class="wizard-step" id="ws2" onclick="goStep(2)">2 — AI Brain</div>
+                <div class="wizard-step" id="ws3" onclick="goStep(3)">3 — Knowledge (Optional)</div>
+                <div class="wizard-step" id="ws4" onclick="goStep(4)">4 — Preview</div>
+            </div>
+
+            <!-- STEP 1: Identity -->
+            <div class="wizard-panel show" id="panel1">
+                <div class="form-group">
+                    <label class="form-label">Bot Name <span class="label-star">*</span></label>
+                    <input class="form-input" id="botName" placeholder="e.g. Support Hero, Sales Max…"
+                        oninput="updatePreview()" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Avatar Emoji <span>Pick one</span></label>
+                    <div class="emoji-grid" id="emojiGrid"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Short Description <span>Optional</span></label>
+                    <input class="form-input" id="botDesc" placeholder="What does this bot do?" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" id="botCat">
+                        <option value="support">Customer Support</option>
+                        <option value="sales">Sales</option>
+                        <option value="education">Education</option>
+                        <option value="developer">Developer</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="health">Health & Fitness</option>
+                        <option value="finance">Finance</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="wizard-nav">
+                    <div></div>
+                    <button class="cta-btn cta-primary" onclick="nextStep(1)">Next: AI Brain →</button>
                 </div>
 
-                <!-- Preview Column -->
-                <div
-                    style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 20px; padding: 24px;">
-                    <h3
-                        style="font-family:var(--font-title); font-size:18px; font-weight:800; color:var(--text); margin-bottom:20px; display:flex; align-items:center; gap:10px;">
-                        💬 Live Laboratory</h3>
-                    <div class="preview-chat" id="previewChat" style="margin-top:0; height: 320px;">
-                        <div class="preview-msg ai" id="previewGreeting">Hi! I'm your bot. Send me a message to test me!
+            </div>
+
+            <!-- STEP 2: AI Brain -->
+            <div class="wizard-panel" id="panel2">
+                <div class="form-group"
+                    style="border: 1px solid var(--border); border-radius: 16px; padding: 24px; background: rgba(255,255,255,0.02);">
+                    <label class="form-label" style="font-size: 16px; margin-bottom: 12px;">Define how your bot behaves
+                        <span class="label-star">*</span></label>
+
+                    <!-- Ready-made behavior integrated -->
+                    <div style="margin-bottom: 20px;">
+                        <label class="form-label" style="font-size: 11px; opacity: 0.7; margin-bottom: 8px;">Quick-Apply
+                            Personality Presets:</label>
+                        <div class="behavior-scroller" id="behaviorScroller">
+                            <!-- Behaviors rendered by JS -->
                         </div>
                     </div>
-                    <div class="preview-input" style="margin-top: 20px;">
-                        <input id="previewInput" placeholder="Send a test transmission…"
-                            onkeydown="if(event.key==='Enter')sendPreview()" />
-                        <button class="cta-btn cta-primary" onclick="sendPreview()"
-                            style="padding:10px 24px">Send</button>
+
+                    <textarea class="form-textarea" id="systemPrompt" rows="8"
+                        placeholder="You are a helpful assistant named {botName}. You help users with…"
+                        style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);"></textarea>
+                    <p class="form-help"
+                        style="margin-top:12px; font-size:12px; color:var(--text-3); line-height: 1.5;">
+                        Describe your bot's personality, tone, and specific knowledge limits. Use the presets above to
+                        start
+                        fast!</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">AI Model</label>
+                    <div
+                        style="padding:16px 20px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;display:flex;align-items:center;gap:14px;">
+                        <div id="modelDisplayIcon"
+                            style="width:40px;height:40px;background:linear-gradient(135deg,#7c3aed,#6d28d9);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">
+                            🤗</div>
+                        <div style="flex:1;">
+                            <div id="currentModelName"
+                                style="font-weight:700;font-family:var(--font-title);font-size:14px;color:var(--text);">
+                                HuggingFace (Default)</div>
+                            <div id="currentModelProvider" style="font-size:11px;color:var(--text-3);font-weight:600;">
+                                Open-Source AI</div>
+                        </div>
+                        <button class="cta-btn cta-ghost" onclick="openModelPicker()" type="button"
+                            style="padding:6px 12px;font-size:12px;border-radius:8px;">Change Model</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button class="advanced-settings-trigger" onclick="openTuningSettings()" type="button">
+                        <div class="adv-trigger-icon">🎛️</div>
+                        <div class="adv-trigger-text">
+                            <span class="adv-trigger-title">Advanced Tuning</span>
+                            <span class="adv-trigger-sub">Creativity, response length & style</span>
+                        </div>
+                        <span class="adv-configured-badge" id="tuningBadge" style="display:none">Tuned</span>
+                        <span class="adv-trigger-arrow">→</span>
+                    </button>
+                </div>
+
+                <div class="wizard-nav">
+                    <button class="cta-btn cta-ghost" onclick="goStep(1)">← Back</button>
+                    <button class="cta-btn cta-primary" onclick="nextStep(2)">Next: Knowledge →</button>
+                </div>
+            </div>
+
+            <!-- STEP 3: Knowledge Base (Optional Extension) -->
+            <div class="wizard-panel" id="panel3">
+                <div
+                    style="background:rgba(124,58,237,0.1); border:1px solid rgba(124,58,237,0.2); padding:16px; border-radius:12px; margin-bottom:24px;">
+                    <h3
+                        style="font-family:var(--font-title); font-size:16px; font-weight:800; color:var(--text); margin-bottom:4px;">
+                        🛠️ Advanced Knowledge Extension</h3>
+                    <p style="color:var(--text-3); font-size:12px; font-weight:600;">This page is for custom bots only.
+                        Add
+                        files or links to give your AI specialized knowledge.</p>
+                </div>
+                <p style="color:var(--text-2);font-size:14px;margin-bottom:24px"><em>All settings here are
+                        optional.</em>
+                </p>
+                <div class="form-group">
+                    <label class="form-label">Upload Files <span>.txt, .md, .pdf</span></label>
+                    <input type="file" id="kbFileInput" multiple accept=".txt,.md,.pdf" style="display:none"
+                        onchange="addKbFiles(this)" />
+                    <button class="cta-btn cta-ghost" onclick="document.getElementById('kbFileInput').click()">📄 Choose
+                        Files</button>
+                    <div class="knowledge-items" id="kbFilesList" style="margin-top:14px"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Add URL <span>Bot will reference this page</span></label>
+                    <div style="display:flex;gap:10px">
+                        <input class="form-input" id="kbUrl" placeholder="https://your-docs.com/page" />
+                        <button class="cta-btn cta-ghost" onclick="addUrl()">Add</button>
+                    </div>
+                    <div class="knowledge-items" id="kbUrlList" style="margin-top:14px"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Manual Q&amp;A</label>
+                    <div style="display:flex;flex-direction:column;gap:10px">
+                        <input class="form-input" id="kbQ" placeholder="Question…" />
+                        <input class="form-input" id="kbA" placeholder="Answer…" />
+                        <button class="cta-btn cta-ghost" onclick="addQA()">Add Q&amp;A Pair</button>
+                    </div>
+                    <div class="knowledge-items" id="kbQaList" style="margin-top:14px"></div>
+                </div>
+                <div class="wizard-nav">
+                    <div
+                        style="flex: 1; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-3);">
+                        <span>💡</span> Knowledge Base is currently an <b>Advanced Feature</b>
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <button class="cta-btn cta-ghost" onclick="goStep(2)">← Back</button>
+                        <button class="cta-btn cta-primary" onclick="nextStep(3)">Next: Preview →</button>
                     </div>
                 </div>
             </div>
-            <div class="wizard-nav" style="margin-top:40px">
-                <button class="cta-btn cta-ghost" onclick="goStep(3)">← Back</button>
-                <div style="display:flex;gap:12px">
-                    <button class="cta-btn cta-ghost" onclick="saveDraft()">💾 Save Draft</button>
-                    <button class="cta-btn cta-primary" onclick="launchBot()">🚀 Deploy & Manage Channels →</button>
+
+            <!-- STEP 4: Preview & Launch -->
+            <div class="wizard-panel" id="panel4">
+                <div style="display:grid; grid-template-columns: 340px 1fr; gap:32px; align-items: start;">
+                    <!-- Summary Column -->
+                    <div class="summary-card">
+                        <h3
+                            style="font-family:var(--font-title); font-size:18px; font-weight:800; color:var(--text); margin-bottom:20px; display:flex; align-items:center; gap:10px;">
+                            📋 Bot Specifications</h3>
+                        <div id="botSummary">
+                            <!-- Summary content injected by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Preview Column -->
+                    <div
+                        style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 20px; padding: 24px;">
+                        <h3
+                            style="font-family:var(--font-title); font-size:18px; font-weight:800; color:var(--text); margin-bottom:20px; display:flex; align-items:center; gap:10px;">
+                            💬 Live Laboratory</h3>
+                        <div class="preview-chat" id="previewChat" style="margin-top:0; height: 320px;">
+                            <div class="preview-msg ai" id="previewGreeting">Hi! I'm your bot. Send me a message to test
+                                me!
+                            </div>
+                        </div>
+                        <div class="preview-input" style="margin-top: 20px;">
+                            <input id="previewInput" placeholder="Send a test transmission…"
+                                onkeydown="if(event.key==='Enter')sendPreview()" />
+                            <button class="cta-btn cta-primary" onclick="sendPreview()"
+                                style="padding:10px 24px">Send</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="wizard-nav" style="margin-top:40px">
+                    <button class="cta-btn cta-ghost" onclick="goStep(3)">← Back</button>
+                    <div style="display:flex;gap:12px">
+                        <button class="cta-btn cta-ghost" onclick="saveDraft()">💾 Save Draft</button>
+                        <button class="cta-btn cta-primary" onclick="launchBot()">🚀 Deploy & Manage Channels →</button>
+                    </div>
                 </div>
             </div>
         </div>
+    </div> <!-- End of wizardContainer -->
     </div>
 
-    <!-- AI Model Picker Modal (Private to Model Section) -->
+    <!-- Removed Template Edit Prompt Modal per user request -->
     <div class="adv-settings-overlay" id="modelPickerOverlay" onclick="if(event.target===this)closeModelPicker()">
         <div class="adv-settings-panel" style="max-width:620px;">
             <div class="adv-settings-header"
@@ -1315,7 +1332,7 @@
             </div>
 
             <div class="confirm-actions">
-                <button class="cta-btn cta-ghost" onclick="closeTemplateConfirm()">Cancel</button>
+                <button class="cta-btn cta-ghost" onclick="closeTemplateConfirm()">← Back</button>
                 <button class="cta-btn cta-primary" onclick="confirmTemplateSelection()">✅ Yes, Confirm & Go!</button>
             </div>
         </div>
@@ -1522,23 +1539,33 @@
                 if (typeof MARKETPLACE_TEMPLATES !== 'undefined') {
                     const t = MARKETPLACE_TEMPLATES.find(x => x.id === tmplId);
                     if (t) {
-                        document.getElementById('botName').value = t.name;
+                        const providedName = params.get('name');
+                        const finalName = providedName ? providedName : t.name;
+                        document.getElementById('botName').value = finalName;
                         document.getElementById('botDesc').value = t.description;
-                        document.getElementById('systemPrompt').value = t.system;
+                        document.getElementById('botCat').value = t.category;
+                        document.getElementById('systemPrompt').value = t.system ? t.system.replace('{botName}', finalName) : '';
                         selectedEmoji = t.emoji;
                         selectedModel = t.model || 'HuggingFace (Default)';
+
+                        setTimeout(() => {
+                            goStep(1);
+                        }, 50);
                     }
                 }
             }
 
             if (!editingId && !tmplId) {
-                // For new manual bots, add default all-rounder references
+                document.getElementById('modeSelectionContainer').style.display = 'block';
+                document.getElementById('wizardContainer').style.display = 'none';
                 DEFAULT_REFS.forEach(url => kbUrls.push(url));
                 renderKbList('kbUrlList', kbUrls, 'url');
+            } else {
+                document.getElementById('modeSelectionContainer').style.display = 'none';
+                document.getElementById('wizardContainer').style.display = 'block';
             }
 
             renderEmojiGrid();
-            renderMarketplace();
             renderBehaviorPresets();
             setLen(responseLen);
             syncAdvLenUI(responseLen);
@@ -1574,99 +1601,15 @@
         }
         window.nextStep = nextStep;
 
-        // ── Marketplace Logic ───────────────────────────────────────────────
-        function renderMarketplace() {
-            const grid = document.getElementById('marketplaceGrid');
-            if (!grid) return;
-            grid.innerHTML = MARKETPLACE_TEMPLATES.map(t => `
-                <div class="marketplace-card${selectedTemplateId === t.id ? ' selected' : ''}" onclick="window.openTemplateConfirm('${t.id}')">
-                    <div class="tmpl-emoji">${t.emoji}</div>
-                    <div class="tmpl-title">${t.name}</div>
-                    <div class="tmpl-desc">${t.desc}</div>
-                    <div class="tmpl-tag">${t.tags}</div>
-                </div>
-            `).join('');
-        }
-        window.renderMarketplace = renderMarketplace;
-
-        let pendingTemplateId = null;
-        window.openTemplateConfirm = function (id) {
-            pendingTemplateId = id;
-            const t = MARKETPLACE_TEMPLATES.find(x => x.id === id);
-            if (!t) return;
-            document.getElementById('confirmEmoji').textContent = t.emoji;
-            document.getElementById('confirmTitle').textContent = t.name;
-            document.getElementById('confirmDetails').innerHTML = `
-                <div style="margin-bottom:8px"><b>Description:</b> ${t.desc}</div>
-                <div style="margin-bottom:8px"><b>Category:</b> ${t.cat.toUpperCase()}</div>
-                <div><b>Tags:</b> ${t.tags}</div>
-            `;
-            document.getElementById('templateConfirmOverlay').classList.add('open');
-        };
-
-        window.closeTemplateConfirm = function () {
-            document.getElementById('templateConfirmOverlay').classList.remove('open');
-            pendingTemplateId = null;
-        };
-
-        window.confirmTemplateSelection = function () {
-            const t = MARKETPLACE_TEMPLATES.find(x => x.id === pendingTemplateId);
-            if (t) {
-                selectedTemplateId = t.id;
-                document.getElementById('botDesc').value = t.desc;
-                document.getElementById('botCat').value = t.cat;
-                selectedEmoji = t.emoji;
-                document.getElementById('systemPrompt').value = t.behavior.replace('{botName}', document.getElementById('botName').value || 'The Bot');
-
-                kbUrls.length = 0;
-                if (t.refUrl) { kbUrls.push(t.refUrl); renderKbList('kbUrlList', kbUrls, 'url'); }
-
-                renderEmojiGrid();
-                renderMarketplace();
-                closeTemplateConfirm();
-
-                // UI Feedback: Show bar & Lock panels
-                const bar = document.getElementById('templateActiveBar');
-                if (bar) {
-                    document.getElementById('tmbarIcon').textContent = t.emoji;
-                    document.getElementById('tmbarTitle').textContent = `Template Active: ${t.name}`;
-                    bar.classList.add('show');
-                }
-
-                document.getElementById('panel1').classList.add('locked');
-                document.getElementById('panel2').classList.add('locked');
-
-                // Mark steps as done and go to Step 2 (AI Brain) so they can see behaviors
-                document.getElementById('ws1').classList.add('done');
-                goStep(2);
-                showToast(`Applied ${t.name} Template! Basic fields locked.`, 'success', '🚀');
-            }
-        };
-
-        window.cancelTemplate = function () {
-            selectedTemplateId = null;
-            const bar = document.getElementById('templateActiveBar');
-            if (bar) bar.classList.remove('show');
-
-            // Unlock and clear
-            document.getElementById('panel1').classList.remove('locked');
-            document.getElementById('panel2').classList.remove('locked');
-            document.getElementById('panel3').classList.remove('locked');
-
-            document.getElementById('botDesc').value = '';
-            document.getElementById('systemPrompt').value = '';
-            kbUrls.length = 0;
-            renderKbList('kbUrlList', kbUrls, 'url');
-
-            // Reset UI states
-            document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('done', 'active'));
-            document.getElementById('ws1').classList.add('active');
-            renderMarketplace();
+        window.startCustomMode = function () {
+            document.getElementById('modeSelectionContainer').style.display = 'none';
+            document.getElementById('wizardContainer').style.display = 'block';
             goStep(1);
-            showToast('Template removed. 4-step manual mode restored.', 'info', '🛠️');
         };
 
-        window.selectTemplate = (id) => openTemplateConfirm(id);
+        /** actionCustomizeTemplate and actionSkipToTest removed as per layout update **/
+
+
 
         // ── Behavior Presets Logic ──────────────────────────────────────────
         function renderBehaviorPresets() {

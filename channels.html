@@ -176,6 +176,21 @@
         .phone-input:focus {
             border-color: var(--purple-l);
         }
+
+        .loader-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(124, 58, 237, 0.2);
+            border-top-color: var(--purple-l);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
     <link rel="stylesheet" href="platform.css" />
 
@@ -184,7 +199,8 @@
     <div id="platformNav"></div>
 
     <div class="channels-wrap">
-        <a href="dashboard.html" style="color:var(--text-2);font-size:13px;text-decoration:none">← Dashboard</a>
+        <a href="#" onclick="window.history.back(); return false;"
+            style="color:var(--text-2);font-size:13px;text-decoration:none">← Back</a>
         <div style="margin:16px 0 8px">
             <h1 style="font-family:var(--font-title);font-size:28px;font-weight:800" id="channelsTitle">Connect Channels
             </h1>
@@ -230,7 +246,7 @@
             </div>
 
             <div class="qr-wrapper" id="waQrWrapper">
-                <div class="qr-scanner-overlay">
+                <div class="qr-scanner-overlay" id="waScannerOverlay" style="display:none;">
                     <div class="scan-line"></div>
                     <div class="corner corner-tl"></div>
                     <div class="corner corner-tr"></div>
@@ -307,7 +323,7 @@
             <div style="display:flex; gap:10px; flex-direction:column;">
                 <button class="cta-btn cta-primary" onclick="openWaShareLink()" style="width:100%">↗️ Open Link in
                     Browser</button>
-                <button class="cta-btn cta-ghost" onclick="closeWAShare()" style="width:100%">Close</button>
+                <button class="cta-btn cta-ghost" onclick="closeWAShare()" style="width:100%">← Back</button>
             </div>
         </div>
     </div>
@@ -322,9 +338,9 @@
             <p class="modal-desc">Paste this snippet into your website's <code>&lt;body&gt;</code> tag. A chat bubble
                 will appear for your visitors.</p>
             <div class="embed-code-box" id="embedCodeBox"></div>
-            <div style="display:flex;gap:10px">
+            <div style="display:flex;gap:10px;margin-top:24px;">
                 <button class="cta-btn cta-primary" onclick="copyEmbedCode()" style="flex:1">📋 Copy Code</button>
-                <button class="cta-btn cta-ghost" onclick="closeEmbed()" style="flex:1">Close</button>
+                <button class="cta-btn cta-ghost" onclick="closeEmbed()" style="flex:1">← Back</button>
             </div>
         </div>
     </div>
@@ -342,38 +358,38 @@
 
         const CHANNELS_DEF = [
             {
-                id: 'telegram', icon: '✈️', name: 'Telegram', color: '#229ED9',
-                desc: 'Connect with your Telegram Bot Token from @BotFather. Your bot will reply to users in any Telegram chat.',
-                fields: [{ id: 'tg_token', label: 'Bot Token', ph: '1234567890:AABB...your_bot_token' }],
-                action: 'connectTelegram'
-            },
-            {
-                id: 'discord', icon: '🎮', name: 'Discord', color: '#5865F2',
-                desc: 'Paste your Discord Server\'s Webhook URL. Your bot will read and reply to messages in that channel.',
-                fields: [{ id: 'dc_webhook', label: 'Webhook URL', ph: 'https://discord.com/api/webhooks/...' }],
-                action: 'connectDiscord'
-            },
-            {
-                id: 'webchat', icon: '🌐', name: 'WebChat Widget', color: '#6366f1',
-                desc: 'Embed a floating chat bubble on any website with one line of code. No signup required for visitors.',
-                fields: [], embedOnly: true
-            },
-            {
-                id: 'slack', icon: '⚡', name: 'Slack', color: '#E01E5A',
-                desc: 'Connect your Slack workspace via OAuth. Your bot will respond in any channel it\'s added to.',
-                fields: [{ id: 'sl_token', label: 'Bot OAuth Token', ph: 'xoxb-...your-slack-token' }],
-                action: 'connectSlack'
-            },
-            {
-                id: 'whatsapp', icon: '💬', name: 'WhatsApp', color: '#25D366',
+                id: 'whatsapp', icon: '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/whatsapp.svg" width="28" style="filter: invert(1);"/>', name: 'WhatsApp', color: '#25D366',
                 desc: 'Scan a QR code to link your own WhatsApp account. The bot will automatically reply to any private messages you receive.',
                 fields: [],
                 action: 'connectWhatsApp'
             },
             {
-                id: 'signal', icon: '🔒', name: 'Signal', color: '#3A76F0',
-                desc: 'End-to-end encrypted messaging. Signal bot integration coming soon.', soon: true
+                id: 'telegram', icon: '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/telegram.svg" width="28" style="filter: invert(1);"/>', name: 'Telegram', color: '#229ED9',
+                desc: 'Connect with your Telegram Bot Token from @BotFather. Your bot will reply to users in any Telegram chat.',
+                fields: [{ id: 'tg_token', label: 'Bot Token', ph: '1234567890:AABB...your_bot_token' }],
+                action: 'connectTelegram'
             },
+            {
+                id: 'discord', icon: '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/discord.svg" width="28" style="filter: invert(1);"/>', name: 'Discord', color: '#5865F2',
+                desc: 'Paste your Discord Server\'s Webhook URL. Your bot will read and reply to messages in that channel.',
+                fields: [{ id: 'dc_webhook', label: 'Webhook URL', ph: 'https://discord.com/api/webhooks/...' }],
+                action: 'connectDiscord'
+            },
+            {
+                id: 'webchat', icon: '<div style="font-size: 28px;">🌐</div>', name: 'WebChat Widget', color: '#6366f1',
+                desc: 'Embed a floating chat bubble on any website with one line of code. No signup required for visitors.',
+                fields: [], embedOnly: true
+            },
+            {
+                id: 'slack', icon: '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/slack.svg" width="28" style="filter: invert(1);"/>', name: 'Slack', color: '#E01E5A',
+                desc: 'Connect your Slack workspace via OAuth. Your bot will respond in any channel it\'s added to.',
+                fields: [{ id: 'sl_token', label: 'Bot OAuth Token', ph: 'xoxb-...your-slack-token' }],
+                action: 'connectSlack'
+            },
+            {
+                id: 'signal', icon: '<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/signal.svg" width="28" style="filter: invert(1);"/>', name: 'Signal', color: '#3A76F0',
+                desc: 'End-to-end encrypted messaging. Signal bot integration coming soon.', soon: true
+            }
         ];
 
         onAuthStateChanged(auth, async (user) => {
@@ -498,6 +514,8 @@
         const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3001/api' : '/api';
         let waPollInterval = null;
         let waInitTimeout = null;
+        let waCountdownInterval = null;
+        let waTimeLeft = 40;
 
         window.connectWhatsApp = async function () {
             const modal = document.getElementById('waModal');
@@ -505,8 +523,29 @@
             const statusText = document.getElementById('waStatusText');
             const qrContainer = document.getElementById('waQrContainer');
 
-            statusText.textContent = "Initializing WhatsApp Engine...";
-            qrContainer.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+            waTimeLeft = 40;
+            if (waCountdownInterval) clearInterval(waCountdownInterval);
+            waCountdownInterval = setInterval(() => {
+                waTimeLeft--;
+                const c = document.getElementById('waCountdown');
+                if (c) {
+                    if (waTimeLeft > 0) {
+                        c.textContent = waTimeLeft + 's';
+                    } else {
+                        c.style.fontSize = '14px';
+                        c.textContent = 'Almost there, securing connection...';
+                        clearInterval(waCountdownInterval);
+                    }
+                }
+            }, 1000);
+
+            statusText.textContent = "Booting Engine & Requesting QR...";
+            qrContainer.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text-3);font-size:13px;font-weight:600;gap:16px;">
+                <div class="loader-spinner"></div>
+                <div>Generating Secure QR...</div>
+                <div id="waCountdown" style="color:var(--purple-l);font-size:24px;font-weight:800;font-family:var(--font-title);text-align:center;">40s</div>
+            </div>`;
+            document.getElementById('waScannerOverlay').style.display = 'none';
 
             try {
                 await fetch(`${API_BASE}/whatsapp/connect`, {
@@ -597,11 +636,13 @@
                     }
 
                     if (status === 'qr') {
+                        if (waCountdownInterval) clearInterval(waCountdownInterval);
                         statusText.innerHTML = `<span style="color:var(--purple-l)">●</span> Ready to connect...`;
                         const qrRes = await fetch(`${API_BASE}/whatsapp/qr`);
                         const { qr } = await qrRes.json();
                         if (qr && !qrContainer.querySelector('img')) {
-                            qrContainer.innerHTML = `<img src="${qr}" style="width:100%;height:100%"/>`;
+                            qrContainer.innerHTML = `<img src="${qr}" style="width:100%;height:100%;border-radius:8px;"/>`;
+                            document.getElementById('waScannerOverlay').style.display = 'block';
                             if (waInitTimeout) clearTimeout(waInitTimeout);
                         }
                     } else if (status === 'connected') {
@@ -642,6 +683,7 @@
             document.getElementById('waModal').classList.remove('open');
             if (waPollInterval) clearInterval(waPollInterval);
             if (waInitTimeout) clearTimeout(waInitTimeout);
+            if (waCountdownInterval) clearInterval(waCountdownInterval);
         }
 
         window.disconnectCh = async function (chId) {

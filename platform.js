@@ -13,6 +13,7 @@ import {
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { MARKETPLACE_TEMPLATES } from './bots_data.js';
 
 const API_BASE = window.location.protocol === 'file:'
     ? 'http://localhost:3001/api'
@@ -161,18 +162,7 @@ const UserStore = {
 };
 
 // ─── Marketplace Templates ───────────────────────────────────
-const MARKETPLACE_TEMPLATES = [
-    { id: 't1', name: 'Customer Support Bot', emoji: '🎧', category: 'support', model: 'GPT-4o', installs: 12840, price: 0, description: 'Handles FAQs, escalates complex issues, tracks tickets.', system: 'You are a friendly and professional customer support agent. Always greet the user, identify their issue clearly, and provide step-by-step solutions. If you cannot resolve the issue, offer to escalate to a human agent.' },
-    { id: 't2', name: 'Sales Assistant', emoji: '💼', category: 'sales', model: 'Claude 3.5', installs: 9200, price: 0, description: 'Qualifies leads, books demos, answers product questions.', system: 'You are an enthusiastic sales assistant. Your goal is to understand the customer\'s needs, match them with the right product or service, and guide them toward booking a demo or making a purchase. Be persuasive but never pushy.' },
-    { id: 't3', name: 'Code Helper', emoji: '💻', category: 'developer', model: 'GPT-4o', installs: 22100, price: 0, description: 'Debugs code, explains concepts, writes clean functions.', system: 'You are an expert software engineer. Help users debug code, explain programming concepts clearly, and write clean, well-commented code. Always ask for the programming language if not specified. Provide working examples.' },
-    { id: 't4', name: 'Language Teacher', emoji: '🌍', category: 'education', model: 'Gemini 1.5', installs: 7400, price: 0, description: 'Teaches vocabulary, grammar, and conversation practice.', system: 'You are a patient and encouraging language teacher. Teach vocabulary, correct grammar gently, and practice conversation with the student. Adapt your teaching style to the student\'s level. Make lessons fun and engaging.' },
-    { id: 't5', name: 'Recipe Bot', emoji: '👨‍🍳', category: 'entertainment', model: 'Llama 3', installs: 5800, price: 0, description: 'Suggests recipes based on ingredients you have.', system: 'You are a creative chef bot. Suggest delicious recipes based on the ingredients the user provides. Include step-by-step instructions, cooking times, and tips for best results. Always ask about dietary restrictions first.' },
-    { id: 't6', name: 'Fitness Coach', emoji: '💪', category: 'health', model: 'GPT-4o', installs: 8900, price: 0, description: 'Creates workout plans, tracks progress, motivates.', system: 'You are an enthusiastic personal fitness coach. Create personalized workout plans, provide nutritional guidance, and keep users motivated. Always consider the user\'s fitness level, goals, and any physical limitations.' },
-    { id: 't7', name: 'FAQ Bot', emoji: '❓', category: 'support', model: 'Llama 3', installs: 18000, price: 0, description: 'Instantly answers common questions with your custom FAQ.', system: 'You are an FAQ assistant. Answer common questions clearly and concisely. If a question is outside your knowledge base, politely say so and offer to connect the user with a human.' },
-    { id: 't8', name: 'News Summarizer', emoji: '📰', category: 'entertainment', model: 'Claude 3.5', installs: 4200, price: 0, description: 'Summarizes news topics in bullet points.', system: 'You are a news analyst. Summarize news stories clearly and objectively in 3-5 bullet points. Cover the key facts: who, what, when, where, why. Avoid bias and present multiple perspectives when relevant.' },
-    { id: 't9', name: 'GitHub Issues Bot', emoji: '🐙', category: 'developer', model: 'GPT-4o', installs: 3100, price: 0, description: 'Helps triage GitHub issues, suggests labels and solutions.', system: 'You are a GitHub project manager bot. Help triage issues by asking clarifying questions, suggesting appropriate labels, estimating priority, and recommending potential solutions or workarounds based on the issue description.' },
-    { id: 't10', name: 'Crypto Analyst', emoji: '📊', category: 'finance', model: 'Gemini 1.5', installs: 6700, price: 0, description: 'Explains crypto concepts, analyzes market trends.', system: 'You are a knowledgeable cryptocurrency analyst. Explain blockchain concepts, analyze market trends based on historical data, and discuss different cryptocurrencies objectively. Always remind users that this is not financial advice.' },
-];
+// MARKETPLACE_TEMPLATES now imported from bots_data.js
 
 function getActivePage() {
     const p = window.location.pathname.split('/').pop() || 'index.html';
@@ -184,10 +174,11 @@ function renderNav() {
     const user = auth.currentUser;
 
     const links = [
+        { href: 'index.html', label: 'Home' },
         { href: 'dashboard.html', label: 'Dashboard' },
         { href: 'pricing.html', label: 'Pricing' },
         { href: 'marketplace.html', label: 'Marketplace' },
-        { href: 'index.html', label: '$Sharp', isPill: true },
+        { href: 'sharp-token.html', label: '$Sharp', isPill: true },
     ];
 
     const navLinksHtml = links.map(l => {

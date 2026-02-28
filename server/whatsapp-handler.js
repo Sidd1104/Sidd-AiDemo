@@ -43,7 +43,14 @@ async function initWhatsApp(aiCallback) {
                 '--disable-setuid-sandbox',
                 '--disable-extensions',
                 '--disable-dev-shm-usage',
-                '--disable-gpu'
+                '--disable-gpu',
+                '--disable-software-rasterizer',
+                '--disable-background-timer-throttling',
+                '--disable-backgrounding-occluded-windows',
+                '--disable-renderer-backgrounding',
+                '--no-first-run',
+                '--no-zygote',
+                '--mute-audio'
             ]
         }
     });
