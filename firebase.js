@@ -7,13 +7,14 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase
 
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: atob("QUl6YVN5Q3Q5NDl6QlppOVBtQnRzZk9RcEFXWjFtNTJpZ3laX0I4"),
-    authDomain: "sharp-ai-7f0c1.firebaseapp.com",
-    projectId: "sharp-ai-7f0c1",
-    storageBucket: "sharp-ai-7f0c1.firebasestorage.app",
-    messagingSenderId: "838564589705",
-    appId: "1:838564589705:web:f0138320a4643ae7d5d658",
-    measurementId: "G-QRK5SP38SR"
+    apiKey: "AIzaSyDleb0eBSMs9BLADkS0VQ3g47tI_YKpmJA",
+    authDomain: "sharpeconomy-f6a7e.firebaseapp.com",
+    projectId: "sharpeconomy-f6a7e",
+    storageBucket: "sharpeconomy-f6a7e.firebasestorage.app",
+    messagingSenderId: "911648840744",
+    appId: "1:911648840744:web:7fd54e3661ebf2df46291d",
+    measurementId: "G-PWCXMD4V50",
+    databaseURL: "https://sharpeconomy-f6a7e-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 
 // Initialize Firebase

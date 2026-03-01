@@ -686,6 +686,33 @@
     </div>
 
     <div id="toastContainer" class="toast-container"></div>
+    <!-- DEBUG OVERLAY START -->
+    <div id="debugOverlay"
+        style="position:fixed;bottom:0;left:0;right:0;height:120px;background:rgba(0,0,0,0.8);color:#0f0;font-family:monospace;font-size:11px;overflow:auto;padding:10px;z-index:9999;pointer-events:none;">
+    </div>
+    <script>
+        window.onerror = function (msg, url, line, col, err) {
+            const overlay = document.getElementById('debugOverlay');
+            if (overlay) {
+                overlay.innerHTML += `<div>[ERR] ${msg} at ${line}:${col}</div>`;
+                overlay.scrollTop = overlay.scrollHeight;
+            }
+            return false;
+        };
+        const _log = console.log;
+        const _error = console.error;
+        console.log = function (...args) {
+            const overlay = document.getElementById('debugOverlay');
+            if (overlay) { overlay.innerHTML += `<div>[LOG] ${args.join(' ')}</div>`; overlay.scrollTop = overlay.scrollHeight; }
+            _log.apply(console, args);
+        };
+        console.error = function (...args) {
+            const overlay = document.getElementById('debugOverlay');
+            if (overlay) { overlay.innerHTML += `<div style="color:red">[ERR] ${args.join(' ')}</div>`; overlay.scrollTop = overlay.scrollHeight; }
+            _error.apply(console, args);
+        };
+    </script>
+    <!-- DEBUG OVERLAY END -->
     <script type="module" src="platform.js"></script>
     <script src="animation.js"></script>
     <script type="module">
@@ -701,13 +728,6 @@
             signInWithPhoneNumber
         } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-        // ── Auth Guard: If already logged in, go to dashboard ──
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                window.location.href = 'dashboard.html';
-            }
-        });
 
         // ── Auth Guard: If already logged in, go to dashboard ──
         onAuthStateChanged(auth, (user) => {
@@ -768,8 +788,12 @@
             const password = document.getElementById('loginPassword').value;
             setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Sign In →');
             try {
+                console.log("[Auth] Attempting sign in for:", email);
                 await signInWithEmailAndPassword(auth, email, password);
+                console.log("[Auth] Sign in successful. Waiting for redirect...");
+                window.location.href = 'dashboard.html';
             } catch (err) {
+                console.error("[Auth Error]", err);
                 showAlert('loginAlert', err.message.replace('Firebase: ', ''), 'error');
                 setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Sign In →');
             }
@@ -786,8 +810,9 @@
             try {
                 const cred = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(cred.user, { displayName: name });
-                await UserStore.sync(cred.user);
+                await window.UserStore.sync(cred.user);
                 showToast('Welcome to Sharp AI! 🚀', 'success', '🎉');
+                setTimeout(() => window.location.href = 'dashboard.html', 1000);
             } catch (err) {
                 showAlert('registerAlert', err.message.replace('Firebase: ', ''), 'error');
                 setLoading('registerBtn', 'registerSpinner', 'registerBtnText', false, 'Create Account →');
@@ -800,8 +825,9 @@
             const provider = new GoogleAuthProvider();
             try {
                 const result = await signInWithPopup(auth, provider);
-                await UserStore.sync(result.user);
+                await window.UserStore.sync(result.user);
                 showToast('Welcome to Sharp AI! 🚀', 'success', '🎉');
+                setTimeout(() => window.location.href = 'dashboard.html', 1000);
             } catch (err) {
                 showToast(err.message.replace('Firebase: ', ''), 'error', '⚠️');
             }
@@ -862,8 +888,9 @@
                         const name = document.getElementById('regPhoneName').value.trim() || 'Phone User';
                         await updateProfile(result.user, { displayName: name });
                     }
-                    await UserStore.sync(result.user);
+                    await window.UserStore.sync(result.user);
                     showToast('Success! Redirecting...', 'success', '🚀');
+                    setTimeout(() => window.location.href = 'dashboard.html', 1000);
                 } catch (err) {
                     showAlert(alertId, 'Invalid code. Try again.', 'error');
                     setLoading(btnId, spinnerId, textId, false, 'Verify Code →');

@@ -688,6 +688,33 @@
     </div>
 
     <div id="toastContainer" class="toast-container"></div>
+    <!-- DEBUG OVERLAY START -->
+    <div id="debugOverlay"
+        style="position:fixed;bottom:0;left:0;right:0;height:120px;background:rgba(0,0,0,0.8);color:#0f0;font-family:monospace;font-size:11px;overflow:auto;padding:10px;z-index:9999;pointer-events:none;">
+    </div>
+    <script>
+        window.onerror = function (msg, url, line, col, err) {
+            const overlay = document.getElementById('debugOverlay');
+            if (overlay) {
+                overlay.innerHTML += `<div>[ERR] ${msg} at ${line}:${col}</div>`;
+                overlay.scrollTop = overlay.scrollHeight;
+            }
+            return false;
+        };
+        const _log = console.log;
+        const _error = console.error;
+        console.log = function (...args) {
+            const overlay = document.getElementById('debugOverlay');
+            if (overlay) { overlay.innerHTML += `<div>[LOG] ${args.join(' ')}</div>`; overlay.scrollTop = overlay.scrollHeight; }
+            _log.apply(console, args);
+        };
+        console.error = function (...args) {
+            const overlay = document.getElementById('debugOverlay');
+            if (overlay) { overlay.innerHTML += `<div style="color:red">[ERR] ${args.join(' ')}</div>`; overlay.scrollTop = overlay.scrollHeight; }
+            _error.apply(console, args);
+        };
+    </script>
+    <!-- DEBUG OVERLAY END -->
     <script type="module" src="platform.js"></script>
     <script src="animation.js"></script>
     <script type="module">
@@ -704,18 +731,30 @@
         onAuthStateChanged(auth, async (user) => {
             if (!user) return redirect();
 
-            // Sync user and get full profile
-            const profile = await UserStore.sync(user);
-            currentUser = {
-                id: profile.uid,
-                name: profile.name,
-                email: profile.email,
-                bio: profile.bio || "",
-                credits: Math.floor(profile.credits || 0),
-                plan: profile.plan || "free"
-            };
+            try {
+                // Sync user and get full profile
+                const profile = await window.UserStore.sync(user);
+                currentUser = {
+                    id: profile.uid,
+                    name: profile.name,
+                    email: profile.email,
+                    bio: profile.bio || "",
+                    credits: Math.floor(profile.credits || 0),
+                    plan: profile.plan || "free"
+                };
 
-            showUser(currentUser);
+                showUser(currentUser);
+                window.showUser = showUser; // Export for inline usage if needed
+
+                // Re-render the navigation with the authenticated user data
+                if (window.injectNav) window.injectNav();
+            } catch (err) {
+                console.error("User sync error:", err);
+                showToast("Firebase DB error: " + err.message, "error", "⚠️");
+                // Allow user to at least see dashboard without completely freezing
+                if (window.injectNav) window.injectNav();
+            }
+
             document.getElementById('authGuard').style.display = 'none';
             initRealtimeSync();
             initProfileForm();
@@ -992,9 +1031,14 @@
 
         window.confirmDelete = async function () {
             if (!deletingId) return;
-            await BotStore.delete(deletingId);
-            closeDelete();
-            showToast('Bot removed successfully', 'info', '🗑');
+            try {
+                await window.BotStore.delete(deletingId);
+                closeDelete();
+                showToast('Bot removed successfully', 'info', '🗑');
+            } catch (err) {
+                console.error("Delete error", err);
+                showToast('Database error: ' + err.message, 'error', '⚠️');
+            }
         }
 
         function updateStats(bots) {
