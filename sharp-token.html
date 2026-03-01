@@ -285,21 +285,9 @@
         async function initFAQs() {
             const faqContainer = document.getElementById('faqContainer');
             try {
-                const qaRef = collection(db, 'faqs');
-                const snap = await getDocs(qaRef);
+                // Render directly from default static FAQs to avoid Firebase permission rules completely
+                const faqs = DEFAULT_FAQS;
 
-                let faqs = [];
-                if (snap.empty) {
-                    console.log('Seeding default FAQs to Firestore...');
-                    for (const f of DEFAULT_FAQS) {
-                        await setDoc(doc(db, 'faqs', f.id), f);
-                        faqs.push(f);
-                    }
-                } else {
-                    faqs = snap.docs.map(d => d.data());
-                }
-
-                // Render
                 faqContainer.innerHTML = faqs.map((f, i) => `
                     <div class="faq-item" onclick="this.classList.toggle('open')">
                         <div class="faq-question">${f.q}</div>
@@ -309,7 +297,7 @@
 
             } catch (e) {
                 console.error('Failed to load FAQs:', e);
-                faqContainer.innerHTML = `<div style="text-align:center;color:var(--red)">Failed to load FAQs from securely. Check your connection.</div>`;
+                faqContainer.innerHTML = `<div style="text-align:center;color:var(--red)">Failed to load FAQs.</div>`;
             }
         }
 
