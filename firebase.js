@@ -7,11 +7,11 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase
 
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyDleb0eBSMs9BLADkS0VQ3g47tI_YKpmJA",
-    authDomain: "sharpeconomy-f6a7e.firebaseapp.com",
-    projectId: "sharpeconomy-f6a7e",
-    storageBucket: "sharpeconomy-f6a7e.firebasestorage.app",
-    messagingSenderId: "911648840744",
+    apiKey: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    authDomain: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    projectId: "XXXXXXXXXXXXXXXXXXXXXXX",
+    storageBucket: "xxxxxxxxxxxxxxxxxxxxxxxxx",
+    messagingSenderId:"xxxxxxxxxxxxxxxxxxxxxxxxx",
     appId: "1:911648840744:web:7fd54e3661ebf2df46291d",
     measurementId: "G-PWCXMD4V50",
     databaseURL: "https://sharpeconomy-f6a7e-default-rtdb.asia-southeast1.firebasedatabase.app"
